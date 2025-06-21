@@ -8,7 +8,7 @@ app.use(express.json());
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const authRoutes = require("./routes/authRoutes");
 
-app.use("/feedbacks", feedbackRoutes);
-app.use("/auth", authRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/auth", authRoutes);
 
 module.exports = app;

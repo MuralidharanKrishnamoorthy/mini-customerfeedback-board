@@ -1,10 +1,23 @@
 const mongoose = require("mongoose");
 
-const commentSchema = new mongoose.Schema({
+const ReplySchema = new mongoose.Schema({
+  text: { type: String, required: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  author: { type: String },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const CommentSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   text: { type: String, required: true },
   author: { type: String },
   date: { type: Date, default: Date.now },
+  reply: {
+    text: { type: String },
+    author: { type: String, default: "Admin" },
+    date: { type: Date }
+  },
+  replies: [ReplySchema]
 });
 
 const FeedbackSchema = new mongoose.Schema({
@@ -21,9 +34,10 @@ const FeedbackSchema = new mongoose.Schema({
     default: "Open",
   },
   upvotes: { type: Number, default: 0 },
+  upvotedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   createdAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  comments: [commentSchema],
+  comments: [CommentSchema],
 });
 
 module.exports = mongoose.model("Feedback", FeedbackSchema);

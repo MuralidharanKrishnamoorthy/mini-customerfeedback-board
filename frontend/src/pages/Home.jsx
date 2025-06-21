@@ -1,153 +1,168 @@
-// src/pages/Home.jsx
-import React, { useEffect, useState } from 'react';
-import FeedbackCard from '../components/FeedbackCard';
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getFeedbacks, upvoteFeedback } from '../services/feedbackApi';
-import Navbar from '../components/Navbar';
+import FeedbackCard from '../components/FeedbackCard';
 import FilterBar from '../components/FilterBar';
 
 const Home = () => {
-  const [feedbacks, setFeedbacks] = useState([]);
+  const [allFeedbackList, setAllFeedbackList] = useState([]);
+  const [filteredFeedbackList, setFilteredFeedbackList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [sort, setSort] = useState("latest");
-  const [search, setSearch] = useState("");
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('sort:mostVoted');
+  const navigate = useNavigate();
 
-  const fetchFeedbacks = async () => {
-    setLoading(true);
-    try {
-      const params = {
-        status: statusFilter,
-        category: categoryFilter,
-        sort,
-        search,
-      };
-      const res = await getFeedbacks(params);
-      setFeedbacks(res.data);
-    } catch (error) {
-      console.error('Error fetching feedbacks:', error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const fetchAllFeedback = async () => {
+      setLoading(true);
+      try {
+        const res = await getFeedbacks();
+        setAllFeedbackList(res.data);
+      } catch (err) {
+        setError('Failed to fetch feedback. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const loggedInUser = JSON.parse(localStorage.getItem('user'));
+    setUser(loggedInUser);
+    fetchAllFeedback();
+  }, []);
+
+  useEffect(() => {
+    let listToProcess = [...allFeedbackList];
+    const [type, value] = activeFilter.split(':');
+
+    if (type === 'sort') {
+      if (value === 'mostVoted') {
+        listToProcess.sort((a, b) => b.upvotes - a.upvotes);
+      } else if (value === 'leastVoted') {
+        listToProcess.sort((a, b) => a.upvotes - b.upvotes);
+      } else if (value === 'newest') {
+        listToProcess.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      }
+    } else if (type === 'status') {
+      if (value !== 'All') {
+        listToProcess = listToProcess.filter(item => item.status === value);
+      }
+    } else if (type === 'category') {
+      if (value !== 'All') {
+        const categoryValue = value === 'UI Improvement' ? 'UI' : value;
+        listToProcess = listToProcess.filter(item => item.category === categoryValue);
+      }
     }
+
+    setFilteredFeedbackList(listToProcess);
+  }, [activeFilter, allFeedbackList]);
+
+  const handleFilterChange = (newFilter) => {
+    setActiveFilter(newFilter);
   };
 
   const handleUpvote = async (id) => {
+    if (!user) {
+      alert("You must be logged in to upvote.");
+      return;
+    }
+    
     try {
-      await upvoteFeedback(id);
-      fetchFeedbacks();
-    } catch (error) {
-      console.error('Error upvoting feedback:', error);
+      const res = await upvoteFeedback(id);
+      setAllFeedbackList(prevList => prevList.map(fb => (fb._id === id ? res.data : fb)));
+    } catch (err) {
+      console.error("Failed to upvote:", err);
+      if (err.response?.status === 400 && err.response?.data?.hasUpvoted) {
+        alert("You have already upvoted this feedback!");
+      } else {
+        alert("Failed to upvote. Please try again.");
+      }
     }
   };
 
-  useEffect(() => {
-    fetchFeedbacks();
-  }, [statusFilter, categoryFilter, sort, search]);
-
-  const getStatusStats = () => {
-    const stats = {
-      total: feedbacks.length,
-      open: feedbacks.filter(f => f.status === 'Open').length,
-      planned: feedbacks.filter(f => f.status === 'Planned').length,
-      inProgress: feedbacks.filter(f => f.status === 'In Progress').length,
-      done: feedbacks.filter(f => f.status === 'Done').length,
-    };
-    return stats;
+  const styles = {
+    container: {
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '24px',
+      fontFamily: "'Poppins', sans-serif"
+    },
+    welcomeMessage: {
+        textAlign: 'left',
+        marginBottom: '24px',
+        fontSize: '28px',
+        fontWeight: '600',
+        color: '#374151',
+    },
+    heroSection: {
+      textAlign: 'center',
+      padding: '0 0 64px 0',
+    },
+    heroTitle: {
+      fontSize: '48px',
+      fontWeight: '700',
+      color: '#111827',
+      lineHeight: '1.2',
+      marginBottom: '16px'
+    },
+    heroSubtitle: {
+      fontSize: '18px',
+      color: '#4b5563',
+      maxWidth: '600px',
+      margin: '0 auto',
+    },
+    feedbackGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+      gap: '32px',
+      alignItems: 'start',
+    },
+    loading: {
+      textAlign: 'center',
+      fontSize: '18px',
+      color: '#6b7280',
+      marginTop: '40px',
+    },
+    error: {
+      textAlign: 'center',
+      fontSize: '18px',
+      color: '#ef4444',
+      marginTop: '40px',
+    },
   };
 
-  const stats = getStatusStats();
-
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          {/* Header Section */}
-          <div className="mb-8">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Product Feedback Board
-              </h1>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Help us improve our product by sharing your feedback, suggestions, and bug reports. 
-                Your voice matters in shaping the future of our platform.
-              </p>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-              <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-                <div className="text-sm text-gray-600">Total</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                <div className="text-2xl font-bold text-orange-600">{stats.open}</div>
-                <div className="text-sm text-gray-600">Open</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                <div className="text-2xl font-bold text-blue-600">{stats.planned}</div>
-                <div className="text-sm text-gray-600">Planned</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                <div className="text-2xl font-bold text-purple-600">{stats.inProgress}</div>
-                <div className="text-sm text-gray-600">In Progress</div>
-              </div>
-              <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                <div className="text-2xl font-bold text-green-600">{stats.done}</div>
-                <div className="text-sm text-gray-600">Done</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Filter Bar */}
-          <FilterBar
-            setStatusFilter={setStatusFilter}
-            setCategoryFilter={setCategoryFilter}
-            setSort={setSort}
-            setSearch={setSearch}
-          />
-
-          {/* Content */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-gray-600">Loading feedback...</span>
-              </div>
-            </div>
-          ) : feedbacks.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No feedback found</h3>
-              <p className="text-gray-600 mb-4">
-                {search || statusFilter || categoryFilter 
-                  ? "Try adjusting your filters to see more results." 
-                  : "Be the first to share your feedback!"
-                }
-              </p>
-              {!search && !statusFilter && !categoryFilter && (
-                <a
-                  href="/submit"
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Add First Feedback
-                </a>
-              )}
-            </div>
+    <div style={styles.container}>
+      {user && <div style={styles.welcomeMessage}>Welcome, {user.username}!</div>}
+      <div style={styles.heroSection}>
+        <h1 style={styles.heroTitle}>Build better products with customer feedback</h1>
+        <p style={styles.heroSubtitle}>Centralize product feedback to uncover insights and make informed product decisions</p>
+      </div>
+      <FilterBar onFilterChange={handleFilterChange} currentFilter={activeFilter} />
+      {loading ? (
+        <div style={styles.loading}>Loading feedback...</div>
+      ) : error ? (
+        <div style={styles.error}>{error}</div>
+      ) : (
+        <div style={styles.feedbackGrid}>
+          {filteredFeedbackList.length > 0 ? (
+            filteredFeedbackList.map(feedback => (
+              <FeedbackCard
+                key={feedback._id}
+                feedback={feedback}
+                user={user}
+                onUpvote={() => handleUpvote(feedback._id)}
+                onViewDetail={() => navigate(`/feedback/${feedback._id}`)}
+              />
+            ))
           ) : (
-            <div className="space-y-4">
-              {feedbacks.map((fb) => (
-                <FeedbackCard key={fb._id} feedback={fb} onUpvote={handleUpvote} />
-              ))}
-            </div>
+            <p>No feedback matching your filters.</p>
           )}
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 };
 

@@ -1,198 +1,327 @@
 // src/pages/Submit.jsx
-import React, { useState } from 'react';
-import { postFeedback } from '../services/feedbackApi';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import { createFeedback } from '../services/feedbackApi';
 
 const Submit = () => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: 'Feature',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('Feature');
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user'));
 
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!user || !user.userId) {
-      alert("You must be logged in to submit feedback.");
+    if (!title.trim() || !description.trim()) {
+      setError('Title and description are required.');
       return;
     }
+    
+    setSubmitting(true);
+    setError(null);
+    setLoadingProgress(0);
+    setLoadingMessage('Preparing your feedback...');
+    
+    const startTime = Date.now();
+    const minLoadingDuration = 3000; // 3 seconds minimum loading time
+    
+    // Progress simulation
+    const progressInterval = setInterval(() => {
+      setLoadingProgress(prev => {
+        if (prev < 90) {
+          const newProgress = prev + Math.random() * 15;
+          if (newProgress < 30) {
+            setLoadingMessage('Validating your feedback...');
+          } else if (newProgress < 60) {
+            setLoadingMessage('Processing your submission...');
+          } else if (newProgress < 90) {
+            setLoadingMessage('Almost done...');
+          }
+          return Math.min(newProgress, 90);
+        }
+        return prev;
+      });
+    }, 200);
 
-    if (!formData.title.trim() || !formData.description.trim()) {
-      alert('Please fill all required fields.');
-      return;
-    }
-
-    setIsSubmitting(true);
     try {
-      await postFeedback({ ...formData, userId: user.userId });
-      navigate('/');
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      alert('Failed to submit feedback. Please try again.');
+      await createFeedback({ title, description, category });
+      
+      // Ensure minimum loading duration
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, minLoadingDuration - elapsedTime);
+      
+      if (remainingTime > 0) {
+        setLoadingMessage('Finalizing...');
+        setLoadingProgress(95);
+        await new Promise(resolve => setTimeout(resolve, remainingTime));
+      }
+      
+      setLoadingProgress(100);
+      setLoadingMessage('Success! Redirecting...');
+      
+      // Brief pause to show completion
+      setTimeout(() => {
+        navigate('/');
+      }, 500);
+      
+    } catch (err) {
+      setError('Failed to submit feedback. Please try again.');
+      console.error(err);
     } finally {
-      setIsSubmitting(false);
+      clearInterval(progressInterval);
+      setSubmitting(false);
+      setLoadingProgress(0);
+      setLoadingMessage('');
+    }
+  };
+  
+  const styles = {
+    container: {
+      maxWidth: '700px',
+      margin: '40px auto',
+      padding: '32px',
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      border: '1px solid #e5e7eb',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+    },
+    title: {
+      fontSize: '24px',
+      fontWeight: '700',
+      color: '#111827',
+      marginBottom: '8px'
+    },
+    subtitle: {
+      fontSize: '14px',
+      color: '#6b7280',
+      marginBottom: '24px'
+    },
+    form: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '20px'
+    },
+    formGroup: {
+      display: 'flex',
+      flexDirection: 'column'
+    },
+    label: {
+      fontSize: '14px',
+      fontWeight: '600',
+      color: '#374151',
+      marginBottom: '8px'
+    },
+    input: {
+      padding: '12px 16px',
+      borderRadius: '8px',
+      border: '1px solid #d1d5db',
+      fontSize: '14px',
+      transition: 'border-color 0.2s, box-shadow 0.2s'
+    },
+    textarea: {
+      padding: '12px 16px',
+      borderRadius: '8px',
+      border: '1px solid #d1d5db',
+      fontSize: '14px',
+      minHeight: '120px',
+      resize: 'vertical',
+      transition: 'border-color 0.2s, box-shadow 0.2s'
+    },
+    button: {
+      padding: '12px 24px',
+      borderRadius: '8px',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: '16px',
+      fontWeight: '600',
+      transition: 'background-color 0.2s, opacity 0.2s',
+      alignSelf: 'flex-start',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+    },
+    submitButton: {
+      backgroundColor: '#4f46e5',
+      color: 'white',
+    },
+    submitButtonHover: {
+      backgroundColor: '#4338ca',
+    },
+    error: {
+      color: '#ef4444',
+      fontSize: '14px',
+      marginTop: '16px',
+      textAlign: 'center'
+    },
+    loadingOverlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    },
+    loadingCard: {
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      padding: '32px',
+      maxWidth: '400px',
+      width: '90%',
+      textAlign: 'center',
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+    },
+    loadingTitle: {
+      fontSize: '18px',
+      fontWeight: '600',
+      color: '#111827',
+      marginBottom: '16px'
+    },
+    loadingMessage: {
+      fontSize: '14px',
+      color: '#6b7280',
+      marginBottom: '24px'
+    },
+    progressContainer: {
+      width: '100%',
+      backgroundColor: '#f3f4f6',
+      borderRadius: '8px',
+      height: '8px',
+      overflow: 'hidden',
+      marginBottom: '16px'
+    },
+    progressBar: {
+      height: '100%',
+      backgroundColor: '#4f46e5',
+      borderRadius: '8px',
+      transition: 'width 0.3s ease',
+      background: 'linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%)'
+    },
+    progressText: {
+      fontSize: '12px',
+      color: '#6b7280',
+      fontWeight: '500'
+    },
+    spinner: {
+      width: '20px',
+      height: '20px',
+      border: '3px solid rgba(255, 255, 255, 0.3)',
+      borderTopColor: '#fff',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite'
+    },
+    '@keyframes spin': {
+      '0%': { transform: 'rotate(0deg)' },
+      '100%': { transform: 'rotate(360deg)' }
     }
   };
 
-  const categoryOptions = [
-    { value: 'Feature', label: '✨ Feature Request', description: 'Suggest a new feature or enhancement' },
-    { value: 'Bug', label: '🐛 Bug Report', description: 'Report a problem or issue you encountered' },
-    { value: 'UI', label: '🎨 UI/UX Improvement', description: 'Suggest improvements to user interface' },
-  ];
+  if (!user) {
+    return null; // or a loading spinner
+  }
 
   return (
     <>
-      <Navbar />
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-2xl mx-auto px-4">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Submit Feedback</h1>
-            <p className="text-gray-600">
-              Share your ideas, report bugs, or suggest improvements to help us make the product better.
-            </p>
+      <div style={styles.container}>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+        <h1 style={styles.title}>Submit New Feedback</h1>
+        <p style={styles.subtitle}>Share your idea to help us improve.</p>
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <div style={styles.formGroup}>
+            <label htmlFor="title" style={styles.label}>Title</label>
+            <input
+              id="title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              style={{...styles.input, backgroundColor: submitting ? '#f3f4f6' : 'white'}}
+              placeholder="A short, descriptive title"
+              disabled={submitting}
+            />
           </div>
-
-          {/* Form Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Category Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  What type of feedback is this? *
-                </label>
-                <div className="grid gap-3">
-                  {categoryOptions.map((option) => (
-                    <label
-                      key={option.value}
-                      className={`
-                        relative flex cursor-pointer rounded-lg border p-4 transition-all
-                        ${formData.category === option.value 
-                          ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500' 
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }
-                      `}
-                    >
-                      <input
-                        type="radio"
-                        name="category"
-                        value={option.value}
-                        checked={formData.category === option.value}
-                        onChange={handleChange}
-                        className="sr-only"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center">
-                          <span className="text-lg font-medium text-gray-900">
-                            {option.label}
-                          </span>
-                          {formData.category === option.value && (
-                            <svg className="ml-auto h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">{option.description}</p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Title Input */}
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                  Title *
-                </label>
-                <input
-                  id="title"
-                  name="title"
-                  type="text"
-                  value={formData.title}
-                  placeholder="Give your feedback a clear, descriptive title..."
-                  className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 transition-colors"
-                  onChange={handleChange}
-                  maxLength={100}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {formData.title.length}/100 characters
-                </p>
-              </div>
-
-              {/* Description Input */}
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  rows={6}
-                  value={formData.description}
-                  placeholder="Provide details about your feedback. Include steps to reproduce for bugs, or explain the value of your feature request..."
-                  className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 transition-colors resize-vertical"
-                  onChange={handleChange}
-                  maxLength={1000}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {formData.description.length}/1000 characters
-                </p>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => navigate(-1)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !formData.title.trim() || !formData.description.trim()}
-                  className={`
-                    px-6 py-2 text-sm font-medium rounded-lg transition-all
-                    ${isSubmitting || !formData.title.trim() || !formData.description.trim()
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow'
-                    }
-                  `}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Submitting...
-                    </div>
-                  ) : (
-                    'Submit Feedback'
-                  )}
-                </button>
-              </div>
-            </form>
+          <div style={styles.formGroup}>
+            <label htmlFor="category" style={styles.label}>Category</label>
+            <select
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              style={{...styles.input, backgroundColor: submitting ? '#f3f4f6' : 'white'}}
+              disabled={submitting}
+            >
+              <option value="Feature">Feature Request</option>
+              <option value="Bug">Bug Report</option>
+              <option value="UI">UI/UX Improvement</option>
+            </select>
           </div>
+          <div style={styles.formGroup}>
+            <label htmlFor="description" style={styles.label}>Description</label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              style={{...styles.textarea, backgroundColor: submitting ? '#f3f4f6' : 'white'}}
+              placeholder="Provide details about your feedback..."
+              disabled={submitting}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            style={{
+              ...styles.button, 
+              ...styles.submitButton,
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.7 : 1
+            }}
+            onMouseEnter={(e) => !submitting && (e.target.style.backgroundColor = styles.submitButtonHover.backgroundColor)}
+            onMouseLeave={(e) => !submitting && (e.target.style.backgroundColor = styles.submitButton.backgroundColor)}
+          >
+            {submitting && <div style={styles.spinner}></div>}
+            {submitting ? 'Submitting...' : 'Submit Feedback'}
+          </button>
+          {error && <p style={styles.error}>{error}</p>}
+        </form>
+      </div>
 
-          {/* Tips Section */}
-          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="text-sm font-medium text-blue-900 mb-3">💡 Tips for great feedback</h3>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Be specific and descriptive in your title</li>
-              <li>• Include steps to reproduce for bugs</li>
-              <li>• Explain the impact or value of feature requests</li>
-              <li>• Check if similar feedback already exists</li>
-            </ul>
+      {/* Loading Overlay */}
+      {submitting && (
+        <div style={styles.loadingOverlay}>
+          <div style={styles.loadingCard}>
+            <h3 style={styles.loadingTitle}>Submitting Feedback</h3>
+            <p style={styles.loadingMessage}>{loadingMessage}</p>
+            
+            <div style={styles.progressContainer}>
+              <div 
+                style={{
+                  ...styles.progressBar,
+                  width: `${loadingProgress}%`
+                }}
+              />
+            </div>
+            
+            <p style={styles.progressText}>{Math.round(loadingProgress)}% Complete</p>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 };

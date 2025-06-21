@@ -3,7 +3,7 @@ const Feedback = require("../models/Feedback");
 // GET all feedbacks with optional filters
 exports.getFeedbacks = async (req, res) => {
   try {
-    const { status, category, sort, search } = req.query;
+    const { status, category, sort, search, createdBy } = req.query;
 
     const filter = {};
     if (status) filter.status = status;
@@ -11,12 +11,17 @@ exports.getFeedbacks = async (req, res) => {
     if (search) {
       filter.title = { $regex: search, $options: 'i' }; // case-insensitive search
     }
+    if (createdBy) filter.createdBy = createdBy;
 
     const sortOptions = {};
     if (sort === "upvotes") sortOptions.upvotes = -1;
     else sortOptions.createdAt = -1; // default: newest first
 
-    const feedbacks = await Feedback.find(filter).sort(sortOptions);
+    const feedbacks = await Feedback.find(filter)
+      .populate('createdBy', 'username')
+      .populate('comments.user', 'username')
+      .populate('comments.replies.createdBy', 'username')
+      .sort(sortOptions);
     res.json(feedbacks);
   } catch (error) {
     console.error("Error fetching feedbacks:", error);
@@ -27,7 +32,11 @@ exports.getFeedbacks = async (req, res) => {
 // GET single feedback by ID
 exports.getFeedbackById = async (req, res) => {
   try {
-    const feedback = await Feedback.findById(req.params.id);
+    const feedback = await Feedback.findById(req.params.id)
+      .populate('createdBy', 'username')
+      .populate('comments.user', 'username')
+      .populate('comments.replies.createdBy', 'username');
+      
     if (!feedback) {
       return res.status(404).json({ message: "Feedback not found" });
     }
@@ -41,11 +50,11 @@ exports.getFeedbackById = async (req, res) => {
 // POST new feedback (user-only)
 exports.createFeedback = async (req, res) => {
   try {
-    const { title, description, category, userId } = req.body;
+    const { title, description, category } = req.body;
 
-    if (!title || !description || !category || !userId) {
+    if (!title || !description || !category) {
       return res.status(400).json({
-        message: "Title, description, category, and userId are required",
+        message: "Title, description, and category are required",
       });
     }
 
@@ -59,11 +68,18 @@ exports.createFeedback = async (req, res) => {
       title,
       description,
       category,
-      createdBy: userId,
+      createdBy: req.user.id,
     });
 
     await newFeedback.save();
-    res.status(201).json(newFeedback);
+    
+    // Populate the user information before sending response
+    const populatedFeedback = await Feedback.findById(newFeedback._id)
+      .populate('createdBy', 'username')
+      .populate('comments.user', 'username')
+      .populate('comments.replies.createdBy', 'username');
+      
+    res.status(201).json(populatedFeedback);
   } catch (error) {
     console.error("Error creating feedback:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -78,9 +94,29 @@ exports.upvoteFeedback = async (req, res) => {
       return res.status(404).json({ message: "Feedback not found" });
     }
 
+    // Check if user has already upvoted
+    const userId = req.user.id;
+    const hasUpvoted = feedback.upvotedBy.includes(userId);
+    
+    if (hasUpvoted) {
+      return res.status(400).json({ 
+        message: "You have already upvoted this feedback",
+        hasUpvoted: true 
+      });
+    }
+
+    // Add user to upvotedBy array and increment upvotes
+    feedback.upvotedBy.push(userId);
     feedback.upvotes += 1;
     await feedback.save();
-    res.json(feedback);
+
+    // Populate the user information before sending response
+    const populatedFeedback = await Feedback.findById(req.params.id)
+      .populate('createdBy', 'username')
+      .populate('comments.user', 'username')
+      .populate('comments.replies.createdBy', 'username');
+
+    res.json(populatedFeedback);
   } catch (error) {
     console.error("Error upvoting feedback:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -118,10 +154,12 @@ exports.updateStatus = async (req, res) => {
 // POST a comment (user or admin)
 exports.addComment = async (req, res) => {
   try {
-    const { userId, text, author } = req.body;
+    const { text } = req.body;
+    console.log('AddComment - Request body:', req.body);
+    console.log('AddComment - User from req.user:', req.user);
 
-    if (!userId || !author || !text) {
-      return res.status(400).json({ message: "userId, author, and text are required" });
+    if (!text) {
+      return res.status(400).json({ message: "text is required" });
     }
 
     const feedback = await Feedback.findById(req.params.id);
@@ -129,13 +167,62 @@ exports.addComment = async (req, res) => {
       return res.status(404).json({ message: "Feedback not found" });
     }
 
-    feedback.comments.push({ user: userId, text, author });
+    feedback.comments.push({ 
+      user: req.user.id, 
+      text, 
+      author: req.user.username || 'Anonymous'
+    });
     await feedback.save();
 
-    res.status(201).json(feedback);
+    // Populate the user information before sending response
+    const populatedFeedback = await Feedback.findById(req.params.id)
+      .populate('createdBy', 'username')
+      .populate('comments.user', 'username');
+
+    res.status(201).json(populatedFeedback);
   } catch (error) {
     console.error("Error adding comment:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// POST a reply to a comment (user or admin)
+exports.addReplyToComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ message: 'text is required' });
+    }
+
+    const feedback = await Feedback.findById(req.params.id);
+    if (!feedback) {
+      return res.status(404).json({ message: 'Feedback not found' });
+    }
+
+    const comment = feedback.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const newReply = { text };
+    if (req.user.role === 'admin') {
+      newReply.author = 'Admin';
+    } else {
+      newReply.createdBy = req.user.id;
+    }
+
+    comment.replies.push(newReply);
+    await feedback.save();
+
+    const populatedFeedback = await Feedback.findById(req.params.id)
+      .populate('createdBy', 'username')
+      .populate('comments.user', 'username')
+      .populate('comments.replies.createdBy', 'username');
+
+    res.status(201).json(populatedFeedback);
+  } catch (error) {
+    console.error("Error adding reply to comment:", error);
+    res.status(500).json({ message: 'Failed to add reply', error: error.message });
   }
 };
 

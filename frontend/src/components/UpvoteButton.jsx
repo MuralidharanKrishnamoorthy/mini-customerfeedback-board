@@ -1,48 +1,80 @@
 // src/components/UpvoteButton.jsx
-import React, { useState } from 'react';
+import React from 'react';
 
-const UpvoteButton = ({ id, count, onUpvote }) => {
-  const [isAnimating, setIsAnimating] = useState(false);
+const UpvoteButton = ({ upvotes, onUpvote, hasUpvoted }) => {
+  const styles = {
+    button: {
+      display: 'flex',
+      alignItems: 'center',
+      padding: '8px 16px',
+      border: '2px solid',
+      borderColor: hasUpvoted ? '#10b981' : '#e5e7eb',
+      borderRadius: '12px',
+      backgroundColor: hasUpvoted ? '#10b981' : '#ffffff',
+      color: hasUpvoted ? '#ffffff' : '#374151',
+      cursor: hasUpvoted ? 'default' : 'pointer',
+      transition: 'all 0.3s ease-in-out',
+      width: 'auto',
+      gap: '8px',
+      fontWeight: '600',
+      fontSize: '14px',
+      boxShadow: hasUpvoted ? '0 4px 12px rgba(16, 185, 129, 0.3)' : '0 2px 4px rgba(0,0,0,0.05)',
+      transform: hasUpvoted ? 'scale(1.05)' : 'scale(1)',
+    },
+    buttonHover: {
+      borderColor: hasUpvoted ? '#10b981' : '#10b981',
+      backgroundColor: hasUpvoted ? '#10b981' : '#f0fdf4',
+      color: hasUpvoted ? '#ffffff' : '#10b981',
+      boxShadow: hasUpvoted ? '0 4px 12px rgba(16, 185, 129, 0.3)' : '0 4px 12px rgba(16, 185, 129, 0.2)',
+      transform: 'scale(1.05)',
+    },
+    arrow: {
+      fontSize: '16px',
+      fontWeight: 'bold',
+      transition: 'transform 0.2s ease-in-out',
+    },
+    text: {
+      fontSize: '14px',
+      fontWeight: '600',
+    },
+    upvoteCount: {
+      fontSize: '14px',
+      fontWeight: '700',
+      color: hasUpvoted ? '#ffffff' : '#374151',
+    },
+  };
 
-  const handleUpvote = async () => {
-    setIsAnimating(true);
-    await onUpvote(id);
-    setTimeout(() => setIsAnimating(false), 300);
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (!hasUpvoted) {
+      onUpvote();
+    }
   };
 
   return (
-    <button
-      onClick={handleUpvote}
-      className={`
-        flex flex-col items-center justify-center
-        min-w-[48px] px-3 py-2
-        bg-gray-50 hover:bg-blue-50 
-        border border-gray-200 hover:border-blue-300
-        rounded-lg transition-all duration-200
-        hover:shadow-sm active:scale-95
-        ${isAnimating ? 'scale-110' : ''}
-        group
-      `}
+    <div
+      onClick={handleClick}
+      style={{ 
+        ...styles.button, 
+        ...(isHovered && !hasUpvoted ? styles.buttonHover : {}),
+        ...(hasUpvoted ? { cursor: 'default' } : {})
+      }}
+      onMouseEnter={() => !hasUpvoted && setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <svg 
-        className={`
-          w-4 h-4 mb-1 transition-all duration-200
-          text-gray-500 group-hover:text-blue-600
-          ${isAnimating ? 'animate-bounce' : ''}
-        `} 
-        fill="currentColor" 
-        viewBox="0 0 20 20"
-      >
-        <path 
-          fillRule="evenodd" 
-          d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" 
-          clipRule="evenodd" 
-        />
-      </svg>
-      <span className="text-xs font-semibold text-gray-700 group-hover:text-blue-600 transition-colors duration-200">
-        {count}
-      </span>
-    </button>
+      <div style={{
+        ...styles.arrow,
+        transform: hasUpvoted ? 'scale(1.2)' : (isHovered ? 'scale(1.1)' : 'scale(1)')
+      }}>
+        {hasUpvoted ? '✓' : '↑'}
+      </div>
+      <div style={styles.text}>
+        {hasUpvoted ? 'Upvoted' : 'Upvote'}
+      </div>
+      <div style={styles.upvoteCount}>{upvotes}</div>
+    </div>
   );
 };
 
