@@ -1,24 +1,20 @@
 // src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Submit from './pages/Submit';
 import Detail from './pages/Detail';
 
-function App() {
+const App = () => {
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/submit" element={<Submit />} />
-          <Route path="/feedback/:id" element={<Detail />} />
-        </Routes>
-      </div>
-    </Router>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/submit" element={<Submit />} />
+        <Route path="/feedback/:id" element={<Detail />} />
+      </Routes>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;
