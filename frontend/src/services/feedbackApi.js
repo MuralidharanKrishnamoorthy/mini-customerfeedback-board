@@ -1,11 +1,14 @@
-// src/services/feedbackApi.js
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5000/feedbacks';
+const BASE = "http://localhost:5000";
 
-export const getFeedbacks = () => axios.get(BASE_URL);
-export const getFeedbackById = (id) => axios.get(`${BASE_URL}/${id}`);
-export const postFeedback = (data) => axios.post(BASE_URL, data);
-export const upvoteFeedback = (id) => axios.patch(`${BASE_URL}/${id}/upvote`);
-export const updateStatus = (id, status) =>
-  axios.patch(`${BASE_URL}/${id}/status`, { status });
+export const login = (data) => axios.post(`${BASE}/auth/login`, data);
+export const register = (data) => axios.post(`${BASE}/auth/register`, data);
+
+export const getFeedbacks = (params) => axios.get(`${BASE}/feedbacks`, { params });
+export const getFeedbackById = (id) => axios.get(`${BASE}/feedbacks/${id}`);
+export const postFeedback = (data) => axios.post(`${BASE}/feedbacks`, data);
+export const upvoteFeedback = (id) => axios.patch(`${BASE}/feedbacks/${id}/upvote`);
+export const updateStatus = (id, status) => axios.patch(`${BASE}/feedbacks/${id}/status`, { status });
+export const postComment = (id, comment) => axios.post(`${BASE}/feedbacks/${id}/comment`, comment);
+export const deleteFeedback = (id) => axios.delete(`${BASE}/feedbacks/${id}`);
