@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { getFeedbacks, upvoteFeedback } from '../services/feedbackApi';
 import FeedbackCard from '../components/FeedbackCard';
 import FilterBar from '../components/FilterBar';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 const Home = () => {
   const [allFeedbackList, setAllFeedbackList] = useState([]);
@@ -142,7 +143,10 @@ const Home = () => {
       </div>
       <FilterBar onFilterChange={handleFilterChange} currentFilter={activeFilter} />
       {loading ? (
-        <div style={styles.loading}>Loading feedback...</div>
+        <div style={{...styles.loading, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px'}}>
+          <LoadingAnimation size="medium" />
+          <span>Loading feedback...</span>
+        </div>
       ) : error ? (
         <div style={styles.error}>{error}</div>
       ) : (

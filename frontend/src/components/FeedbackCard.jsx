@@ -34,6 +34,7 @@ const categoryIcons = {
 const FeedbackCard = ({ feedback, onUpvote, onViewDetail, user }) => {
   const { _id, title, description, category, status, upvotes, comments, upvotedBy } = feedback;
   const [currentComments, setCurrentComments] = useState(comments || []);
+  const [submittingComment, setSubmittingComment] = useState(false);
   
   // Check if user has upvoted using the user ID from JWT token
   const hasUpvoted = user && upvotedBy && upvotedBy.includes(user.userId || user.id);
@@ -43,14 +44,33 @@ const FeedbackCard = ({ feedback, onUpvote, onViewDetail, user }) => {
       alert("Please log in to comment.");
       return;
     }
+    console.log('FeedbackCard - Starting comment submission, setting loading to true');
+    setSubmittingComment(true);
+    
+    // Add a minimum loading time to make animation visible
+    const startTime = Date.now();
+    const minLoadingTime = 1500; // 1.5 seconds minimum
+    
     try {
+      console.log('FeedbackCard - Making API call to add comment');
       const res = await addComment(_id, { text: commentText });
+      console.log('FeedbackCard - Comment added successfully:', res.data);
+      
+      // Ensure minimum loading time
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime < minLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+      }
+      
       // Optimistically add the new comment to the UI
       const newComment = res.data.comments[res.data.comments.length - 1];
       setCurrentComments(prev => [...prev, newComment]);
     } catch (error) {
-      console.error("Failed to add comment:", error);
+      console.error("FeedbackCard - Failed to add comment:", error);
       alert("There was an error posting your comment.");
+    } finally {
+      console.log('FeedbackCard - Comment submission finished, setting loading to false');
+      setSubmittingComment(false);
     }
   };
 
@@ -127,7 +147,7 @@ const FeedbackCard = ({ feedback, onUpvote, onViewDetail, user }) => {
         </div>
       </div>
       <div style={styles.commentSection}>
-        <CommentInput onSubmit={handleCommentSubmit} />
+        <CommentInput onSubmit={handleCommentSubmit} loading={submittingComment} />
       </div>
     </div>
   );

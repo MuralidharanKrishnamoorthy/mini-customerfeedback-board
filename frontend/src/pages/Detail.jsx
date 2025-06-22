@@ -11,6 +11,7 @@ import {
 } from '../services/feedbackApi';
 import UpvoteButton from '../components/UpvoteButton';
 import CommentInput from '../components/CommentInput';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 const Detail = () => {
   const { id } = useParams();
@@ -22,6 +23,7 @@ const Detail = () => {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [user, setUser] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [submittingReply, setSubmittingReply] = useState(null);
 
   const styles = {
     container: {
@@ -205,9 +207,21 @@ const Detail = () => {
     }
 
     setSubmittingComment(true);
+    
+    // Add a minimum loading time to make animation visible
+    const startTime = Date.now();
+    const minLoadingTime = 1500; // 1.5 seconds minimum
+    
     try {
       console.log('handleCommentSubmit - Sending comment:', { text: commentText });
       const res = await addComment(id, { text: commentText });
+      
+      // Ensure minimum loading time
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime < minLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+      }
+      
       setFeedback(res.data);
       setNewComment('');
     } catch (err) {
@@ -225,15 +239,30 @@ const Detail = () => {
     console.log('handleReplySubmit - ReplyText:', replyText);
     
     if (!user) return alert("Please log in to reply.");
+    setSubmittingReply(commentId);
+    
+    // Add a minimum loading time to make animation visible
+    const startTime = Date.now();
+    const minLoadingTime = 1500; // 1.5 seconds minimum
+    
     try {
       console.log('handleReplySubmit - Sending reply:', { text: replyText });
       const res = await addReplyToComment(id, commentId, { text: replyText });
+      
+      // Ensure minimum loading time
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime < minLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+      }
+      
       setFeedback(res.data);
       setReplyingTo(null);
     } catch (error) {
       console.error("handleReplySubmit - Error details:", error);
       console.error("handleReplySubmit - Error response:", error.response?.data);
       alert("Failed to post reply.");
+    } finally {
+      setSubmittingReply(null);
     }
   };
 
@@ -241,7 +270,12 @@ const Detail = () => {
     fetchFeedback();
   }, [fetchFeedback]);
 
-  if (loading) return <div style={styles.loadingError}>Loading...</div>;
+  if (loading) return (
+    <div style={{...styles.loadingError, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px'}}>
+      <LoadingAnimation size="medium" />
+      <span>Loading feedback details...</span>
+    </div>
+  );
   if (error) return <div style={styles.loadingError}>{error}</div>;
   if (!feedback) return <div style={styles.loadingError}>Feedback not found.</div>;
 
@@ -308,7 +342,7 @@ const Detail = () => {
 
               {replyingTo === comment._id && (
                 <div style={styles.replyInputSection}>
-                  <CommentInput onSubmit={(replyText) => handleReplySubmit(comment._id, replyText)} />
+                  <CommentInput onSubmit={(replyText) => handleReplySubmit(comment._id, replyText)} loading={submittingReply === comment._id} />
                 </div>
               )}
             </div>
@@ -318,7 +352,7 @@ const Detail = () => {
         )}
         <div style={{marginTop: '24px', borderTop: '1px solid #f3f4f6', paddingTop: '24px'}}>
            <h3 style={{...styles.commentsTitle, fontSize: '18px'}}>Leave a Comment</h3>
-           <CommentInput onSubmit={handleCommentSubmit} />
+           <CommentInput onSubmit={handleCommentSubmit} loading={submittingComment} />
         </div>
       </div>
     </div>

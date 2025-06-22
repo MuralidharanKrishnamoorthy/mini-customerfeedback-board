@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../services/feedbackApi';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 const Login = () => {
   const [form, setForm] = useState({ username: '', password: '' });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const styles = {
@@ -67,9 +69,27 @@ const Login = () => {
   };
 
   const handleLogin = async () => {
+    if (!form.username || !form.password) {
+      alert("Please fill in all fields");
+      return;
+    }
+    
+    setLoading(true);
     try {
       console.log('Login - Attempting login with:', form);
+      
+      // Add a minimum loading time to make animation visible
+      const startTime = Date.now();
+      const minLoadingTime = 2000; // 2 seconds minimum
+      
       const res = await login(form);
+      
+      // Ensure minimum loading time
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime < minLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+      }
+      
       console.log('Login - Response received:', res);
       const userData = res.data;
       console.log('Login - User data to store:', userData);
@@ -82,6 +102,8 @@ const Login = () => {
     } catch (error) {
       console.error('Login - Error:', error);
       alert("Login failed. Check credentials.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,20 +114,34 @@ const Login = () => {
         style={styles.input}
         placeholder="Username" 
         onChange={(e) => setForm({ ...form, username: e.target.value })} 
+        disabled={loading}
       />
       <input 
         type="password" 
         style={styles.passwordInput}
         placeholder="Password" 
         onChange={(e) => setForm({ ...form, password: e.target.value })} 
+        disabled={loading}
       />
       <button 
         onClick={handleLogin} 
-        style={styles.button}
-        onMouseEnter={(e) => e.target.style.backgroundColor = styles.buttonHover.backgroundColor}
-        onMouseLeave={(e) => e.target.style.backgroundColor = styles.button.backgroundColor}
+        style={{
+          ...styles.button,
+          cursor: loading ? 'not-allowed' : 'pointer',
+          opacity: loading ? 0.7 : 1
+        }}
+        onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
+        onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = styles.button.backgroundColor)}
+        disabled={loading}
       >
-        Login
+        {loading ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <LoadingAnimation size="small" color="white" />
+            <span>Logging in...</span>
+          </div>
+        ) : (
+          'Login'
+        )}
       </button>
       <Link to="/register" style={styles.signupLink}>
         Don't have an account? Sign Up

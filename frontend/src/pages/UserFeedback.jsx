@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFeedbacks } from '../services/feedbackApi';
 import FeedbackCard from '../components/FeedbackCard';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 const UserFeedback = () => {
   const [feedbackList, setFeedbackList] = useState([]);
@@ -70,7 +71,12 @@ const UserFeedback = () => {
     }
   };
 
-  if (loading) return <div style={styles.loading}>Loading your feedback...</div>;
+  if (loading) return (
+    <div style={{...styles.loading, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px'}}>
+      <LoadingAnimation size="medium" />
+      <span>Loading your feedback...</span>
+    </div>
+  );
   if (error) return <div style={styles.error}>{error}</div>;
 
   return (

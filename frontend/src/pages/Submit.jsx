@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createFeedback } from '../services/feedbackApi';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 const Submit = () => {
   const [title, setTitle] = useState('');
@@ -295,7 +296,7 @@ const Submit = () => {
             onMouseEnter={(e) => !submitting && (e.target.style.backgroundColor = styles.submitButtonHover.backgroundColor)}
             onMouseLeave={(e) => !submitting && (e.target.style.backgroundColor = styles.submitButton.backgroundColor)}
           >
-            {submitting && <div style={styles.spinner}></div>}
+            {submitting && <LoadingAnimation size="small" color="white" />}
             {submitting ? 'Submitting...' : 'Submit Feedback'}
           </button>
           {error && <p style={styles.error}>{error}</p>}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../services/feedbackApi';
+import LoadingAnimation from '../components/LoadingAnimation';
 
 const Register = () => {
   const [form, setForm] = useState({ username: '', password: '' });
@@ -104,11 +105,22 @@ const Register = () => {
         <button 
           type="submit"
           disabled={loading}
-          style={{ ...styles.button, opacity: loading ? 0.7 : 1 }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = styles.buttonHover.backgroundColor}
-          onMouseLeave={(e) => e.target.style.backgroundColor = styles.button.backgroundColor}
+          style={{ 
+            ...styles.button, 
+            opacity: loading ? 0.7 : 1,
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+          onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
+          onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = styles.button.backgroundColor)}
         >
-          {loading ? 'Registering...' : 'Register'}
+          {loading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <LoadingAnimation size="small" color="white" />
+              <span>Creating account...</span>
+            </div>
+          ) : (
+            'Register'
+          )}
         </button>
       </form>
       <p style={styles.loginLink}>
