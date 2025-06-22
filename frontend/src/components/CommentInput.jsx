@@ -43,7 +43,7 @@ const CommentInput = ({ onSubmit, loading = false }) => {
   
   const handleSubmit = (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent card navigation
+    e.stopPropagation(); 
     console.log('CommentInput - Submit clicked, loading:', loading, 'comment:', comment);
     if (comment.trim() && !loading) {
       console.log('CommentInput - Calling onSubmit with comment:', comment);
@@ -53,7 +53,7 @@ const CommentInput = ({ onSubmit, loading = false }) => {
   };
 
   const handleContainerClick = (e) => {
-    e.stopPropagation(); // Prevent card navigation
+    e.stopPropagation(); 
   }
 
   return (

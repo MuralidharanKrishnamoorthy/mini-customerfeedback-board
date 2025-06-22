@@ -304,7 +304,7 @@ exports.deleteComment = async (req, res) => {
       return res.status(403).json({ message: "User not authorized to delete this comment" });
     }
 
-    comment.deleteOne(); // Mongoose v6+ subdocument deletion
+    comment.deleteOne(); 
     await feedback.save();
     res.json({ message: "Comment deleted successfully" });
 

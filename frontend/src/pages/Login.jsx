@@ -92,13 +92,13 @@ const Login = () => {
     try {
       console.log('Login - Attempting login with:', form);
       
-      // Add a minimum loading time to make animation visible
+      
       const startTime = Date.now();
-      const minLoadingTime = 2000; // 2 seconds minimum
+      const minLoadingTime = 2000; 
       
       const res = await login(form);
       
-      // Ensure minimum loading time
+      
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime < minLoadingTime) {
         await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));

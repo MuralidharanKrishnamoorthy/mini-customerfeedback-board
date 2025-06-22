@@ -8,11 +8,11 @@ const Admin = () => {
   const [filteredFeedbackList, setFilteredFeedbackList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [replyingTo, setReplyingTo] = useState(null); // { feedbackId, commentId }
+  const [replyingTo, setReplyingTo] = useState(null); 
   const [replyText, setReplyText] = useState("");
   const [submittingReply, setSubmittingReply] = useState(null);
   
-  // Search and filter states
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [feedbackToDelete, setFeedbackToDelete] = useState(null);
@@ -25,11 +25,11 @@ const Admin = () => {
     }))
   ).sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  // Filter feedback based on search term and category
+  
   useEffect(() => {
     let filtered = [...feedbackList];
     
-    // Apply search filter
+    
     if (searchTerm.trim()) {
       filtered = filtered.filter(feedback => 
         feedback.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,14 +46,14 @@ const Admin = () => {
     if (!replyText.trim()) return;
     setSubmittingReply(commentId);
     
-    // Add a minimum loading time to make animation visible
+    
     const startTime = Date.now();
-    const minLoadingTime = 1500; // 1.5 seconds minimum
+    const minLoadingTime = 1500; 
     
     try {
       await addReplyToComment(feedbackId, commentId, { text: replyText });
       
-      // Ensure minimum loading time
+      
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime < minLoadingTime) {
         await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
@@ -61,7 +61,7 @@ const Admin = () => {
       
       setReplyingTo(null);
       setReplyText("");
-      // Re-fetch all data to show the new reply
+      
       fetchFeedback();
     } catch (err) {
       alert("Failed to submit reply.");
@@ -109,7 +109,7 @@ const Admin = () => {
       await deleteFeedback(feedbackToDelete._id);
       setShowDeleteConfirm(false);
       setFeedbackToDelete(null);
-      fetchFeedback(); // Re-fetch
+      fetchFeedback(); 
     } catch (err) {
       alert('Failed to delete feedback.');
     }
@@ -321,7 +321,7 @@ const Admin = () => {
       fontWeight: '500',
       transition: 'background-color 0.2s',
     },
-    // Confirmation Dialog Styles
+   
     overlay: {
       position: 'fixed',
       top: 0,

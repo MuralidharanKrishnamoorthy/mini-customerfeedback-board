@@ -1,4 +1,4 @@
-// src/components/FilterBar.jsx
+
 import React from 'react';
 
 const FilterBar = ({ onFilterChange, currentFilter }) => {

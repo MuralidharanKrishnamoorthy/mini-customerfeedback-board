@@ -1,4 +1,4 @@
-// src/components/FeedbackCard.jsx
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UpvoteButton from './UpvoteButton';
@@ -47,22 +47,22 @@ const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user, show
     console.log('FeedbackCard - Starting comment submission, setting loading to true');
     setSubmittingComment(true);
     
-    // Add a minimum loading time to make animation visible
+    
     const startTime = Date.now();
-    const minLoadingTime = 1500; // 1.5 seconds minimum
+    const minLoadingTime = 1500; 
     
     try {
       console.log('FeedbackCard - Making API call to add comment');
       const res = await addComment(_id, { text: commentText });
       console.log('FeedbackCard - Comment added successfully:', res.data);
       
-      // Ensure minimum loading time
+      
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime < minLoadingTime) {
         await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
       }
       
-      // Optimistically add the new comment to the UI
+      
       const newComment = res.data.comments[res.data.comments.length - 1];
       setCurrentComments(prev => [...prev, newComment]);
     } catch (error) {
@@ -122,7 +122,7 @@ const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user, show
     supportMessage: {
       fontSize: '12px',
       fontWeight: '500',
-      color: '#059669', // Green to match upvote
+      color: '#059669', 
     },
     commentSection: {
         marginTop: '20px',
@@ -150,7 +150,7 @@ const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user, show
           {showDelete ? (
              <button 
               onClick={(e) => {
-                e.stopPropagation(); // Prevent card click
+                e.stopPropagation(); 
                 onDelete();
               }} 
               style={styles.deleteButton}

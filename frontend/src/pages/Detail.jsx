@@ -1,4 +1,4 @@
-// src/pages/Detail.jsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -171,15 +171,15 @@ const Detail = () => {
 
     setSubmittingComment(true);
     
-    // Add a minimum loading time to make animation visible
+    
     const startTime = Date.now();
-    const minLoadingTime = 1500; // 1.5 seconds minimum
+    const minLoadingTime = 1500; 
     
     try {
       console.log('handleCommentSubmit - Sending comment:', { text: commentText });
       const res = await addComment(id, { text: commentText });
       
-      // Ensure minimum loading time
+      
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime < minLoadingTime) {
         await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
@@ -204,15 +204,15 @@ const Detail = () => {
     if (!user) return alert("Please log in to reply.");
     setSubmittingReply(commentId);
     
-    // Add a minimum loading time to make animation visible
+    
     const startTime = Date.now();
-    const minLoadingTime = 1500; // 1.5 seconds minimum
+    const minLoadingTime = 1500; 
     
     try {
       console.log('handleReplySubmit - Sending reply:', { text: replyText });
       const res = await addReplyToComment(id, commentId, { text: replyText });
       
-      // Ensure minimum loading time
+      
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime < minLoadingTime) {
         await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
@@ -233,7 +233,7 @@ const Detail = () => {
     if (window.confirm('Are you sure you want to delete this comment?')) {
       try {
         await deleteComment(id, commentId);
-        // Optimistic update
+        
         setFeedback(prev => ({
           ...prev,
           comments: prev.comments.filter(c => c._id !== commentId)
@@ -249,7 +249,7 @@ const Detail = () => {
     if (window.confirm('Are you sure you want to delete this reply?')) {
       try {
         await deleteReply(id, commentId, replyId);
-        // Optimistic update
+        
         setFeedback(prev => ({
           ...prev,
           comments: prev.comments.map(c => {

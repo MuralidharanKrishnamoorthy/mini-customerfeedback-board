@@ -3,15 +3,15 @@ const cors = require("cors");
 
 const app = express();
 
-// Simple CORS configuration that allows all origins
+
 app.use(cors({
-  origin: true, // Allow all origins
+  origin: true, 
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Origin", "Accept"]
 }));
 
-// Additional CORS headers for preflight requests
+
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
@@ -49,7 +49,7 @@ app.get('/api/health', (req, res) => {
   }
 });
 
-// Test endpoint to verify basic functionality
+
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Test endpoint working' });
 });

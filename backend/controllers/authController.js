@@ -58,14 +58,14 @@ exports.login = async (req, res) => {
     );
     
     return res.json({
-      userId: "admin_user_id", // Static ID for the admin
+      userId: "admin_user_id",
       username: ADMIN_USERNAME,
       role: "admin",
       token: token
     });
   }
 
-  // Regular user login
+  // Customer login
   try {
     const user = await User.findOne({ username });
     if (!user) {

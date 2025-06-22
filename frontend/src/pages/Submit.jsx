@@ -1,4 +1,4 @@
-// src/pages/Submit.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createFeedback } from '../services/feedbackApi';
@@ -34,9 +34,9 @@ const Submit = () => {
     setLoadingMessage('Preparing your feedback...');
     
     const startTime = Date.now();
-    const minLoadingDuration = 3000; // 3 seconds minimum loading time
+    const minLoadingDuration = 3000; 
     
-    // Progress simulation
+    
     const progressInterval = setInterval(() => {
       setLoadingProgress(prev => {
         if (prev < 90) {
@@ -57,7 +57,7 @@ const Submit = () => {
     try {
       await createFeedback({ title, description, category });
       
-      // Ensure minimum loading duration
+      
       const elapsedTime = Date.now() - startTime;
       const remainingTime = Math.max(0, minLoadingDuration - elapsedTime);
       
@@ -70,7 +70,7 @@ const Submit = () => {
       setLoadingProgress(100);
       setLoadingMessage('Success! Redirecting...');
       
-      // Brief pause to show completion
+      
       setTimeout(() => {
         navigate('/');
       }, 500);
@@ -232,7 +232,7 @@ const Submit = () => {
   };
 
   if (!user) {
-    return null; // or a loading spinner
+    return null; 
   }
 
   return (

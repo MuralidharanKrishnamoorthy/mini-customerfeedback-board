@@ -34,11 +34,11 @@ const UserFeedback = () => {
   }, [navigate]);
 
   const handleDelete = async (feedbackId) => {
-    // Confirmation dialog
+   
     if (window.confirm("Are you sure you want to delete this feedback? This action cannot be undone.")) {
       try {
         await deleteFeedback(feedbackId);
-        // Optimistically update the UI by removing the deleted feedback
+        
         setFeedbackList(currentList => currentList.filter(item => item._id !== feedbackId));
       } catch (err) {
         console.error("Failed to delete feedback:", err);

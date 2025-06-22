@@ -17,7 +17,7 @@ API.interceptors.request.use((req) => {
       if (!userData.token) {
         console.log('API Request - No token found, clearing invalid user data');
         localStorage.removeItem('user');
-        // Don't set Authorization header if no token
+        
       } else {
         req.headers.Authorization = `Bearer ${userData.token}`;
       }
@@ -28,14 +28,14 @@ API.interceptors.request.use((req) => {
     return req;
 });
 
-// Add response interceptor to handle 401 errors
+
 API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
       console.log('API Response - 401 Unauthorized, clearing user data');
       localStorage.removeItem('user');
-      // Optionally redirect to login
+      
       window.location.href = '/login';
     }
     return Promise.reject(error);
