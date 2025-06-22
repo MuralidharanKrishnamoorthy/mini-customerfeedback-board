@@ -3,13 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   getFeedbackById,
-  upvoteFeedback,
   updateFeedbackStatus,
-  
   addComment,
   addReplyToComment,
 } from '../services/feedbackApi';
-import UpvoteButton from '../components/UpvoteButton';
 import CommentInput from '../components/CommentInput';
 import LoadingAnimation from '../components/LoadingAnimation';
 
@@ -147,47 +144,6 @@ const Detail = () => {
     }
   }, [id, navigate]);
 
-  const handleUpvote = async () => {
-    if (!feedback) return;
-    if (!user) {
-      alert("You must be logged in to upvote.");
-      return;
-    }
-    
-    // Check if user has already upvoted
-    const hasUpvoted = feedback.upvotedBy && feedback.upvotedBy.includes(user.userId || user.id);
-    if (hasUpvoted) {
-      alert("You have already upvoted this feedback!");
-      return;
-    }
-    
-    try {
-      // Optimistic UI update
-      setFeedback(prev => ({ 
-        ...prev, 
-        upvotes: prev.upvotes + 1,
-        upvotedBy: [...(prev.upvotedBy || []), user.userId || user.id]
-      }));
-      
-      const res = await upvoteFeedback(feedback._id);
-      setFeedback(res.data);
-    } catch (err) {
-      // Revert on error
-      setFeedback(prev => ({ 
-        ...prev, 
-        upvotes: prev.upvotes - 1,
-        upvotedBy: prev.upvotedBy.filter(id => id !== (user.userId || user.id))
-      }));
-      
-      if (err.response?.status === 400 && err.response?.data?.hasUpvoted) {
-        alert("You have already upvoted this feedback!");
-      } else {
-        alert("Failed to upvote. Please try again.");
-      }
-      console.error(err);
-    }
-  };
-
   const handleStatusChange = async (e) => {
     try {
       await updateFeedbackStatus(id, e.target.value);
@@ -292,17 +248,14 @@ const Detail = () => {
         <div style={styles.metaGrid}>
           <div style={styles.metaItem}>
             <div style={styles.metaLabel}>Upvotes</div>
-            <div style={styles.metaValue}>
-              <UpvoteButton 
-                upvotes={feedback.upvotes} 
-                onUpvote={handleUpvote} 
-                hasUpvoted={feedback.upvotedBy && feedback.upvotedBy.includes(user?.userId || user?.id)} 
-              />
+            <div style={{ ...styles.metaValue, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '18px', color: '#4f46e5' }}>↑</span>
+              {feedback.upvotes}
             </div>
           </div>
           <div style={styles.metaItem}>
             <div style={styles.metaLabel}>Author</div>
-            <div style={styles.metaValue}>{feedback.createdBy?.username || 'Anonymous'}</div>
+            <div style={styles.metaValue}>{feedback.createdBy ? feedback.createdBy.username : 'Anonymous'}</div>
           </div>
           <div style={styles.metaItem}>
             <div style={styles.metaLabel}>Category</div>
