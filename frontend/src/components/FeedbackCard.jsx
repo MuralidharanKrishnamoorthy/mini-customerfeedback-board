@@ -30,7 +30,20 @@ const categoryIcons = {
   UI: "🎨",
 };
 
-const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user, showDelete, onDelete, isUpvoting, isDownvoting }) => {
+const FeedbackCard = ({ 
+  feedback, 
+  onUpvote, 
+  onDownvote, 
+  onViewDetail, 
+  user, 
+  showDelete, 
+  onDelete, 
+  isUpvoting, 
+  isDownvoting,
+  isDeleting,
+  onConfirmDelete,
+  onCancelDelete
+}) => {
   const { _id, title, description, category, status, upvotes, comments, upvotedBy } = feedback;
   const [currentComments, setCurrentComments] = useState(comments || []);
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -138,24 +151,44 @@ const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user, show
       cursor: 'pointer',
       transition: 'background-color 0.2s',
     },
+    deleteConfirmContainer: {
+      display: 'flex',
+      gap: '10px',
+      alignItems: 'center',
+    },
+    confirmButton: {
+      padding: '8px 12px',
+      borderRadius: '8px',
+      border: 'none',
+      fontWeight: '600',
+      cursor: 'pointer',
+    }
   };
 
   return (
     <div style={styles.card}>
-      <div style={styles.contentArea} onClick={onViewDetail}>
+      <div style={styles.contentArea} onClick={!isDeleting ? onViewDetail : undefined}>
         <div style={styles.header}>
           <div style={{...styles.tag, ...statusColors[status]}}>{status}</div>
           <div style={{...styles.tag, ...categoryColors[category]}}>{category}</div>
           {showDelete ? (
-             <button 
-              onClick={(e) => {
-                e.stopPropagation(); 
-                onDelete();
-              }} 
-              style={styles.deleteButton}
-            >
-              Delete
-            </button>
+             isDeleting ? (
+              <div style={styles.deleteConfirmContainer}>
+                <span style={{fontSize: '14px', fontWeight: 500, color: '#4b5563'}}>Delete?</span>
+                <button onClick={(e) => { e.stopPropagation(); onConfirmDelete(); }} style={{...styles.confirmButton, backgroundColor: '#fee2e2', color: '#dc2626'}}>Yes</button>
+                <button onClick={(e) => { e.stopPropagation(); onCancelDelete(); }} style={{...styles.confirmButton, backgroundColor: '#f3f4f6', color: '#4b5563'}}>No</button>
+              </div>
+            ) : (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation(); 
+                  onDelete();
+                }} 
+                style={styles.deleteButton}
+              >
+                Delete
+              </button>
+            )
           ) : (
             <UpvoteButton
               upvotes={upvotes}

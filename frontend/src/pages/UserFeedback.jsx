@@ -9,6 +9,7 @@ const UserFeedback = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,17 +35,23 @@ const UserFeedback = () => {
   }, [navigate]);
 
   const handleDelete = async (feedbackId) => {
-   
-    if (window.confirm("Are you sure you want to delete this feedback? This action cannot be undone.")) {
-      try {
-        await deleteFeedback(feedbackId);
-        
-        setFeedbackList(currentList => currentList.filter(item => item._id !== feedbackId));
-      } catch (err) {
-        console.error("Failed to delete feedback:", err);
-        alert("There was an error deleting your feedback. Please try again.");
-      }
+    try {
+      await deleteFeedback(feedbackId);
+      setFeedbackList(currentList => currentList.filter(item => item._id !== feedbackId));
+    } catch (err) {
+      console.error("Failed to delete feedback:", err);
+      alert("There was an error deleting your feedback. Please try again.");
+    } finally {
+      setDeletingId(null);
     }
+  };
+
+  const requestDelete = (feedbackId) => {
+    setDeletingId(feedbackId);
+  };
+
+  const cancelDelete = () => {
+    setDeletingId(null);
   };
 
   const styles = {
@@ -105,7 +112,10 @@ const UserFeedback = () => {
               user={user}
               onViewDetail={() => navigate(`/feedback/${feedback._id}`)}
               showDelete={true}
-              onDelete={() => handleDelete(feedback._id)}
+              onDelete={() => requestDelete(feedback._id)}
+              isDeleting={deletingId === feedback._id}
+              onConfirmDelete={() => handleDelete(feedback._id)}
+              onCancelDelete={cancelDelete}
             />
           ))}
         </div>
