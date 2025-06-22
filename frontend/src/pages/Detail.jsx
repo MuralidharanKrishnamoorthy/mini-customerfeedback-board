@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -24,6 +23,7 @@ const Detail = () => {
   const [replyingTo, setReplyingTo] = useState(null);
   const [submittingReply, setSubmittingReply] = useState(null);
   const [hoveredDelete, setHoveredDelete] = useState(null);
+  const [deletingInfo, setDeletingInfo] = useState(null);
 
   const styles = {
     container: {
@@ -116,6 +116,19 @@ const Detail = () => {
       padding: '4px',
       lineHeight: '1',
       transition: 'color 0.2s ease-in-out',
+    },
+    deleteConfirmContainer: {
+      display: 'flex',
+      gap: '8px',
+      alignItems: 'center',
+    },
+    confirmButton: {
+      padding: '4px 8px',
+      borderRadius: '6px',
+      border: 'none',
+      fontWeight: '600',
+      cursor: 'pointer',
+      fontSize: '12px'
     }
   };
 
@@ -230,40 +243,48 @@ const Detail = () => {
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (window.confirm('Are you sure you want to delete this comment?')) {
-      try {
-        await deleteComment(id, commentId);
-        
-        setFeedback(prev => ({
-          ...prev,
-          comments: prev.comments.filter(c => c._id !== commentId)
-        }));
-      } catch (error) {
-        console.error('Failed to delete comment:', error);
-        alert('Could not delete comment. Please try again.');
-      }
+    try {
+      await deleteComment(id, commentId);
+      
+      setFeedback(prev => ({
+        ...prev,
+        comments: prev.comments.filter(c => c._id !== commentId)
+      }));
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      alert('Could not delete comment. Please try again.');
+    } finally {
+      setDeletingInfo(null);
     }
   };
 
   const handleDeleteReply = async (commentId, replyId) => {
-    if (window.confirm('Are you sure you want to delete this reply?')) {
-      try {
-        await deleteReply(id, commentId, replyId);
-        
-        setFeedback(prev => ({
-          ...prev,
-          comments: prev.comments.map(c => {
-            if (c._id === commentId) {
-              return { ...c, replies: c.replies.filter(r => r._id !== replyId) };
-            }
-            return c;
-          })
-        }));
-      } catch (error) {
-        console.error('Failed to delete reply:', error);
-        alert('Could not delete reply. Please try again.');
-      }
+    try {
+      await deleteReply(id, commentId, replyId);
+      
+      setFeedback(prev => ({
+        ...prev,
+        comments: prev.comments.map(c => {
+          if (c._id === commentId) {
+            return { ...c, replies: c.replies.filter(r => r._id !== replyId) };
+          }
+          return c;
+        })
+      }));
+    } catch (error) {
+      console.error('Failed to delete reply:', error);
+      alert('Could not delete reply. Please try again.');
+    } finally {
+      setDeletingInfo(null);
     }
+  };
+
+  const requestDelete = (type, id, commentId = null) => {
+    setDeletingInfo({ type, id, commentId });
+  };
+
+  const cancelDelete = () => {
+    setDeletingInfo(null);
   };
 
   useEffect(() => {
@@ -326,18 +347,26 @@ const Detail = () => {
               <div style={styles.commentHeader}>
                 <div style={styles.commentAuthor}>{comment.user ? comment.user.username : 'Anonymous'}</div>
                 {(user?.role === 'admin' || user?.userId === comment.user?._id) && (
-                  <button 
-                    onClick={() => handleDeleteComment(comment._id)} 
-                    style={{...styles.deleteButton, color: hoveredDelete === comment._id ? '#ef4444' : '#9ca3af'}} 
-                    title="Delete comment"
-                    onMouseEnter={() => setHoveredDelete(comment._id)}
-                    onMouseLeave={() => setHoveredDelete(null)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                      <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                    </svg>
-                  </button>
+                  deletingInfo?.type === 'comment' && deletingInfo?.id === comment._id ? (
+                    <div style={styles.deleteConfirmContainer}>
+                      <span style={{fontSize: '14px', fontWeight: 500, color: '#4b5563'}}>Delete?</span>
+                      <button onClick={() => handleDeleteComment(comment._id)} style={{...styles.confirmButton, backgroundColor: '#fee2e2', color: '#dc2626'}}>Yes</button>
+                      <button onClick={cancelDelete} style={{...styles.confirmButton, backgroundColor: '#f3f4f6', color: '#4b5563'}}>No</button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => requestDelete('comment', comment._id)} 
+                      style={{...styles.deleteButton, color: hoveredDelete === comment._id ? '#ef4444' : '#9ca3af'}} 
+                      title="Delete comment"
+                      onMouseEnter={() => setHoveredDelete(comment._id)}
+                      onMouseLeave={() => setHoveredDelete(null)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                        <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                      </svg>
+                    </button>
+                  )
                 )}
               </div>
               <p style={styles.commentText}>{comment.text}</p>
@@ -364,18 +393,26 @@ const Detail = () => {
                        <div style={styles.commentHeader}>
                         <div style={styles.commentAuthor}>{reply.createdBy ? reply.createdBy.username : 'Anonymous'}</div>
                         {(user?.role === 'admin' || user?.userId === reply.createdBy?._id) && (
-                           <button 
-                            onClick={() => handleDeleteReply(comment._id, reply._id)} 
-                            style={{...styles.deleteButton, color: hoveredDelete === reply._id ? '#ef4444' : '#9ca3af'}} 
-                            title="Delete reply"
-                            onMouseEnter={() => setHoveredDelete(reply._id)}
-                            onMouseLeave={() => setHoveredDelete(null)}
-                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                              <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                              <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                            </svg>
-                          </button>
+                          deletingInfo?.type === 'reply' && deletingInfo?.id === reply._id ? (
+                            <div style={styles.deleteConfirmContainer}>
+                              <span style={{fontSize: '14px', fontWeight: 500, color: '#4b5563'}}>Delete?</span>
+                              <button onClick={() => handleDeleteReply(deletingInfo.commentId, reply._id)} style={{...styles.confirmButton, backgroundColor: '#fee2e2', color: '#dc2626'}}>Yes</button>
+                              <button onClick={cancelDelete} style={{...styles.confirmButton, backgroundColor: '#f3f4f6', color: '#4b5563'}}>No</button>
+                            </div>
+                           ) : (
+                            <button 
+                              onClick={() => requestDelete('reply', reply._id, comment._id)} 
+                              style={{...styles.deleteButton, color: hoveredDelete === reply._id ? '#ef4444' : '#9ca3af'}} 
+                              title="Delete reply"
+                              onMouseEnter={() => setHoveredDelete(reply._id)}
+                              onMouseLeave={() => setHoveredDelete(null)}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                              </svg>
+                            </button>
+                           )
                         )}
                       </div>
                       <p style={styles.commentText}>{reply.text}</p>
