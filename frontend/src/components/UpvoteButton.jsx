@@ -13,7 +13,7 @@ const UpvoteButton = ({ upvotes, onUpvote, onDownvote, hasUpvoted }) => {
     }
   };
   
-  const buttonText = hasUpvoted ? (isHovered ? 'Undo Upvote' : 'Upvoted') : 'Upvote';
+  const buttonText = hasUpvoted ? (isHovered ? 'Undo Vote' : 'Upvoted') : 'Upvote';
   const buttonIcon = hasUpvoted ? (isHovered ? '‹' : '✓') : '↑';
 
   const styles = {
