@@ -1,65 +1,80 @@
 // src/components/UpvoteButton.jsx
 import React from 'react';
-import { ThumbsUp } from 'lucide-react';
 
-const UpvoteButton = ({ feedback, user, onUpvote, onRemoveUpvote, isUpvoted: externalIsUpvoted }) => {
-  const isUpvoted = externalIsUpvoted ?? (user && feedback.upvotedBy.includes(user.id));
-
+const UpvoteButton = ({ upvotes, onUpvote, hasUpvoted }) => {
   const styles = {
     button: {
-      display: 'inline-flex',
+      display: 'flex',
       alignItems: 'center',
-      gap: '8px',
-      backgroundColor: isUpvoted ? '#4f46e5' : '#f3f4f6',
-      color: isUpvoted ? 'white' : '#374151',
       padding: '8px 16px',
-      borderRadius: '8px',
-      border: isUpvoted ? '1px solid #4f46e5' : '1px solid #e5e7eb',
-      cursor: user ? 'pointer' : 'not-allowed',
+      border: '2px solid',
+      borderColor: hasUpvoted ? '#10b981' : '#e5e7eb',
+      borderRadius: '12px',
+      backgroundColor: hasUpvoted ? '#10b981' : '#ffffff',
+      color: hasUpvoted ? '#ffffff' : '#374151',
+      cursor: hasUpvoted ? 'default' : 'pointer',
+      transition: 'all 0.3s ease-in-out',
+      width: 'auto',
+      gap: '8px',
       fontWeight: '600',
       fontSize: '14px',
-      transition: 'all 0.2s',
-      opacity: user ? 1 : 0.6
+      boxShadow: hasUpvoted ? '0 4px 12px rgba(16, 185, 129, 0.3)' : '0 2px 4px rgba(0,0,0,0.05)',
+      transform: hasUpvoted ? 'scale(1.05)' : 'scale(1)',
     },
     buttonHover: {
-      backgroundColor: isUpvoted ? '#4338ca' : '#e5e7eb',
-      borderColor: isUpvoted ? '#4338ca' : '#d1d5db'
+      borderColor: hasUpvoted ? '#10b981' : '#10b981',
+      backgroundColor: hasUpvoted ? '#10b981' : '#f0fdf4',
+      color: hasUpvoted ? '#ffffff' : '#10b981',
+      boxShadow: hasUpvoted ? '0 4px 12px rgba(16, 185, 129, 0.3)' : '0 4px 12px rgba(16, 185, 129, 0.2)',
+      transform: 'scale(1.05)',
     },
-    icon: {
-      width: '16px',
-      height: '16px'
-    }
+    arrow: {
+      fontSize: '16px',
+      fontWeight: 'bold',
+      transition: 'transform 0.2s ease-in-out',
+    },
+    text: {
+      fontSize: '14px',
+      fontWeight: '600',
+    },
+    upvoteCount: {
+      fontSize: '14px',
+      fontWeight: '700',
+      color: hasUpvoted ? '#ffffff' : '#374151',
+    },
   };
+
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const handleClick = (e) => {
     e.stopPropagation();
-    if (user) {
-      if (isUpvoted) {
-        onRemoveUpvote();
-      } else {
-        onUpvote();
-      }
-    } else {
-      alert("You must be logged in to upvote.");
+    if (!hasUpvoted) {
+      onUpvote();
     }
   };
 
   return (
-    <button
-      style={styles.button}
+    <div
       onClick={handleClick}
-      onMouseEnter={(e) => {
-        if (user) e.currentTarget.style.backgroundColor = styles.buttonHover.backgroundColor;
+      style={{ 
+        ...styles.button, 
+        ...(isHovered && !hasUpvoted ? styles.buttonHover : {}),
+        ...(hasUpvoted ? { cursor: 'default' } : {})
       }}
-      onMouseLeave={(e) => {
-        if (user) e.currentTarget.style.backgroundColor = styles.button.backgroundColor;
-      }}
-      title={user ? (isUpvoted ? "Remove upvote" : "Upvote") : "Login to upvote"}
+      onMouseEnter={() => !hasUpvoted && setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <ThumbsUp style={styles.icon} />
-      <span>{isUpvoted ? 'Upvoted' : 'Upvote'}</span>
-      <span>({feedback.upvotes})</span>
-    </button>
+      <div style={{
+        ...styles.arrow,
+        transform: hasUpvoted ? 'scale(1.2)' : (isHovered ? 'scale(1.1)' : 'scale(1)')
+      }}>
+        {hasUpvoted ? '✓' : '↑'}
+      </div>
+      <div style={styles.text}>
+        {hasUpvoted ? 'Upvoted' : 'Upvote'}
+      </div>
+      <div style={styles.upvoteCount}>{upvotes}</div>
+    </div>
   );
 };
 
