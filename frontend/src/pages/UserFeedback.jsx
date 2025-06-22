@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getFeedbacks } from '../services/feedbackApi';
+import { getFeedbacks, deleteFeedback } from '../services/feedbackApi';
 import FeedbackCard from '../components/FeedbackCard';
 import LoadingAnimation from '../components/LoadingAnimation';
 
@@ -32,6 +32,20 @@ const UserFeedback = () => {
       navigate('/login');
     }
   }, [navigate]);
+
+  const handleDelete = async (feedbackId) => {
+    // Confirmation dialog
+    if (window.confirm("Are you sure you want to delete this feedback? This action cannot be undone.")) {
+      try {
+        await deleteFeedback(feedbackId);
+        // Optimistically update the UI by removing the deleted feedback
+        setFeedbackList(currentList => currentList.filter(item => item._id !== feedbackId));
+      } catch (err) {
+        console.error("Failed to delete feedback:", err);
+        alert("There was an error deleting your feedback. Please try again.");
+      }
+    }
+  };
 
   const styles = {
     container: {
@@ -90,6 +104,8 @@ const UserFeedback = () => {
               feedback={feedback}
               user={user}
               onViewDetail={() => navigate(`/feedback/${feedback._id}`)}
+              showDelete={true}
+              onDelete={() => handleDelete(feedback._id)}
             />
           ))}
         </div>

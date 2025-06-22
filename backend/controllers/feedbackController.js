@@ -261,16 +261,25 @@ exports.addReplyToComment = async (req, res) => {
   }
 };
 
-// DELETE feedback (admin)
+// DELETE a feedback item (owner only)
 exports.deleteFeedback = async (req, res) => {
   try {
-    const feedback = await Feedback.findByIdAndDelete(req.params.id);
+    const feedback = await Feedback.findById(req.params.id);
+
     if (!feedback) {
       return res.status(404).json({ message: "Feedback not found" });
     }
-    res.json({ message: "Deleted successfully" });
+
+    // Ensure the user deleting the feedback is the one who created it
+    if (feedback.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "User not authorized to delete this feedback" });
+    }
+
+    await feedback.deleteOne();
+
+    res.json({ message: "Feedback deleted successfully" });
   } catch (error) {
-    console.error("Delete error:", error);
+    console.error("Error deleting feedback:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

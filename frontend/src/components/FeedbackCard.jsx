@@ -31,7 +31,7 @@ const categoryIcons = {
   UI: "🎨",
 };
 
-const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user }) => {
+const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user, showDelete, onDelete }) => {
   const { _id, title, description, category, status, upvotes, comments, upvotedBy } = feedback;
   const [currentComments, setCurrentComments] = useState(comments || []);
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -128,7 +128,17 @@ const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user }) =>
         marginTop: '20px',
         borderTop: '1px solid #f3f4f6',
         paddingTop: '16px',
-    }
+    },
+    deleteButton: {
+      padding: '8px 16px',
+      borderRadius: '8px',
+      border: '1px solid #fee2e2',
+      backgroundColor: '#fef2f2',
+      color: '#ef4444',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'background-color 0.2s',
+    },
   };
 
   return (
@@ -137,12 +147,24 @@ const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user }) =>
         <div style={styles.header}>
           <div style={{...styles.tag, ...statusColors[status]}}>{status}</div>
           <div style={{...styles.tag, ...categoryColors[category]}}>{category}</div>
-          <UpvoteButton 
-            upvotes={upvotes} 
-            onUpvote={onUpvote} 
-            onDownvote={onDownvote} 
-            hasUpvoted={hasUpvoted} 
-          />
+          {showDelete ? (
+             <button 
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card click
+                onDelete();
+              }} 
+              style={styles.deleteButton}
+            >
+              Delete
+            </button>
+          ) : (
+            <UpvoteButton
+              upvotes={upvotes}
+              onUpvote={onUpvote}
+              onDownvote={onDownvote}
+              hasUpvoted={user && upvotedBy && upvotedBy.includes(user.userId || user.id)}
+            />
+          )}
         </div>
         <h3 style={styles.title}>{title}</h3>
         <p style={styles.description}>{description}</p>
