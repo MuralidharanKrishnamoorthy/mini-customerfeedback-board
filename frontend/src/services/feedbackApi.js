@@ -47,6 +47,7 @@ export const getFeedbacks = (params) => API.get('/feedback', { params });
 export const getFeedbackById = (id) => API.get(`/feedback/${id}`);
 export const createFeedback = (feedbackData) => API.post('/feedback', feedbackData);
 export const upvoteFeedback = (id) => API.post(`/feedback/${id}/upvote`);
+export const downvoteFeedback = (id) => API.post(`/feedback/${id}/downvote`);
 export const updateFeedbackStatus = (id, status) => API.put(`/feedback/${id}/status`, { status });
 export const addReplyToFeedback = (id, reply) => API.post(`/feedback/${id}/reply`, { reply });
 export const addComment = (id, commentData) => API.post(`/feedback/${id}/comments`, commentData);

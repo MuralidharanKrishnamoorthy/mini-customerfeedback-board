@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getFeedbacks, upvoteFeedback } from '../services/feedbackApi';
+import { getFeedbacks, upvoteFeedback, downvoteFeedback } from '../services/feedbackApi';
 import FeedbackCard from '../components/FeedbackCard';
 import FilterBar from '../components/FilterBar';
 import LoadingAnimation from '../components/LoadingAnimation';
@@ -83,6 +83,21 @@ const Home = () => {
     }
   };
 
+  const handleDownvote = async (id) => {
+    if (!user) {
+      alert("You must be logged in to downvote.");
+      return;
+    }
+    
+    try {
+      const res = await downvoteFeedback(id);
+      setAllFeedbackList(prevList => prevList.map(fb => (fb._id === id ? res.data : fb)));
+    } catch (err) {
+      console.error("Failed to downvote:", err);
+      alert("Failed to remove upvote. Please try again.");
+    }
+  };
+
   const styles = {
     container: {
       maxWidth: '1200px',
@@ -158,6 +173,7 @@ const Home = () => {
                 feedback={feedback}
                 user={user}
                 onUpvote={() => handleUpvote(feedback._id)}
+                onDownvote={() => handleDownvote(feedback._id)}
                 onViewDetail={() => navigate(`/feedback/${feedback._id}`)}
               />
             ))

@@ -31,7 +31,7 @@ const categoryIcons = {
   UI: "🎨",
 };
 
-const FeedbackCard = ({ feedback, onUpvote, onViewDetail, user }) => {
+const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user }) => {
   const { _id, title, description, category, status, upvotes, comments, upvotedBy } = feedback;
   const [currentComments, setCurrentComments] = useState(comments || []);
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -137,7 +137,12 @@ const FeedbackCard = ({ feedback, onUpvote, onViewDetail, user }) => {
         <div style={styles.header}>
           <div style={{...styles.tag, ...statusColors[status]}}>{status}</div>
           <div style={{...styles.tag, ...categoryColors[category]}}>{category}</div>
-          <UpvoteButton upvotes={upvotes} onUpvote={onUpvote} hasUpvoted={hasUpvoted} />
+          <UpvoteButton 
+            upvotes={upvotes} 
+            onUpvote={onUpvote} 
+            onDownvote={onDownvote} 
+            hasUpvoted={hasUpvoted} 
+          />
         </div>
         <h3 style={styles.title}>{title}</h3>
         <p style={styles.description}>{description}</p>

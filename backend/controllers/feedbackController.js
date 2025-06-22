@@ -123,6 +123,41 @@ exports.upvoteFeedback = async (req, res) => {
   }
 };
 
+// PATCH downvote
+exports.downvoteFeedback = async (req, res) => {
+  try {
+    const feedback = await Feedback.findById(req.params.id);
+    if (!feedback) {
+      return res.status(404).json({ message: "Feedback not found" });
+    }
+
+    const userId = req.user.id;
+    const userIndex = feedback.upvotedBy.indexOf(userId);
+    
+    if (userIndex === -1) {
+      return res.status(400).json({ 
+        message: "You have not upvoted this feedback",
+        hasUpvoted: false
+      });
+    }
+
+    // Remove user from upvotedBy array and decrement upvotes
+    feedback.upvotedBy.splice(userIndex, 1);
+    feedback.upvotes -= 1;
+    await feedback.save();
+
+    const populatedFeedback = await Feedback.findById(req.params.id)
+      .populate('createdBy', 'username')
+      .populate('comments.user', 'username')
+      .populate('comments.replies.createdBy', 'username');
+
+    res.json(populatedFeedback);
+  } catch (error) {
+    console.error("Error downvoting feedback:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // PATCH update status (admin)
 exports.updateStatus = async (req, res) => {
   try {
