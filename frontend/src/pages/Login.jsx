@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../services/feedbackApi';
 import LoadingAnimation from '../components/LoadingAnimation';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const [form, setForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigate = useNavigate();
 
   const styles = {
@@ -33,14 +35,26 @@ const Login = () => {
       fontSize: '14px',
       boxSizing: 'border-box'
     },
+    passwordContainer: {
+      position: 'relative',
+      width: '100%',
+      marginBottom: '16px'
+    },
     passwordInput: {
       border: '1px solid #d1d5db',
       width: '100%',
-      padding: '8px 12px',
-      marginBottom: '16px',
+      padding: '8px 40px 8px 12px',
       borderRadius: '4px',
       fontSize: '14px',
       boxSizing: 'border-box'
+    },
+    togglePasswordVisibility: {
+      position: 'absolute',
+      top: '50%',
+      right: '12px',
+      transform: 'translateY(-50%)',
+      cursor: 'pointer',
+      color: '#6b7280'
     },
     button: {
       backgroundColor: '#2563eb',
@@ -116,13 +130,21 @@ const Login = () => {
         onChange={(e) => setForm({ ...form, username: e.target.value })} 
         disabled={loading}
       />
-      <input 
-        type="password" 
-        style={styles.passwordInput}
-        placeholder="Password" 
-        onChange={(e) => setForm({ ...form, password: e.target.value })} 
-        disabled={loading}
-      />
+      <div style={styles.passwordContainer}>
+        <input 
+          type={isPasswordVisible ? 'text' : 'password'} 
+          style={styles.passwordInput}
+          placeholder="Password" 
+          onChange={(e) => setForm({ ...form, password: e.target.value })} 
+          disabled={loading}
+        />
+        <div 
+          style={styles.togglePasswordVisibility} 
+          onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+        >
+          {isPasswordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+        </div>
+      </div>
       <button 
         onClick={handleLogin} 
         style={{

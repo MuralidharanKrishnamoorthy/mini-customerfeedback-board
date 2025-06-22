@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 // Hardcoded admin credentials
 const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin";
+const ADMIN_PASSWORD = "@dm1n";
 
 // POST /auth/register (user only)
 exports.register = async (req, res) => {
@@ -12,6 +12,15 @@ exports.register = async (req, res) => {
 
   if (!username || !password) {
     return res.status(400).json({ message: "Username and password are required" });
+  }
+
+  // Password complexity validation
+  const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9]).{7,}$/;
+  if (!passwordRegex.test(password)) {
+    return res.status(400).json({
+      message:
+        "Password must be at least 7 characters long and contain at least one uppercase letter, one number, and one special character.",
+    });
   }
 
   try {
