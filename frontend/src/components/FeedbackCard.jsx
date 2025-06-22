@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import UpvoteButton from './UpvoteButton';
@@ -31,7 +30,7 @@ const categoryIcons = {
   UI: "🎨",
 };
 
-const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user, showDelete, onDelete }) => {
+const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user, showDelete, onDelete, isUpvoting, isDownvoting }) => {
   const { _id, title, description, category, status, upvotes, comments, upvotedBy } = feedback;
   const [currentComments, setCurrentComments] = useState(comments || []);
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -163,6 +162,7 @@ const FeedbackCard = ({ feedback, onUpvote, onDownvote, onViewDetail, user, show
               onUpvote={onUpvote}
               onDownvote={onDownvote}
               hasUpvoted={user && upvotedBy && upvotedBy.includes(user.userId || user.id)}
+              isLoading={isUpvoting || isDownvoting}
             />
           )}
         </div>

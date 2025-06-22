@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFeedbacks, upvoteFeedback, downvoteFeedback } from '../services/feedbackApi';
@@ -14,6 +12,8 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [activeFilter, setActiveFilter] = useState('sort:mostVoted');
+  const [upvotingId, setUpvotingId] = useState(null);
+  const [downvotingId, setDownvotingId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,6 +70,7 @@ const Home = () => {
       return;
     }
     
+    setUpvotingId(id);
     try {
       const res = await upvoteFeedback(id);
       setAllFeedbackList(prevList => prevList.map(fb => (fb._id === id ? res.data : fb)));
@@ -80,6 +81,8 @@ const Home = () => {
       } else {
         alert("Failed to upvote. Please try again.");
       }
+    } finally {
+      setUpvotingId(null);
     }
   };
 
@@ -89,12 +92,15 @@ const Home = () => {
       return;
     }
     
+    setDownvotingId(id);
     try {
       const res = await downvoteFeedback(id);
       setAllFeedbackList(prevList => prevList.map(fb => (fb._id === id ? res.data : fb)));
     } catch (err) {
       console.error("Failed to downvote:", err);
       alert("Failed to remove upvote. Please try again.");
+    } finally {
+      setDownvotingId(null);
     }
   };
 
@@ -175,6 +181,8 @@ const Home = () => {
                 onUpvote={() => handleUpvote(feedback._id)}
                 onDownvote={() => handleDownvote(feedback._id)}
                 onViewDetail={() => navigate(`/feedback/${feedback._id}`)}
+                isUpvoting={upvotingId === feedback._id}
+                isDownvoting={downvotingId === feedback._id}
               />
             ))
           ) : (

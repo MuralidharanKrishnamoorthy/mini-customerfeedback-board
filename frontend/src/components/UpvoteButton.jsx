@@ -1,11 +1,12 @@
-
 import React from 'react';
+import LoadingAnimation from './LoadingAnimation';
 
-const UpvoteButton = ({ upvotes, onUpvote, onDownvote, hasUpvoted }) => {
+const UpvoteButton = ({ upvotes, onUpvote, onDownvote, hasUpvoted, isLoading }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
   const handleClick = (e) => {
     e.stopPropagation();
+    if (isLoading) return;
     if (hasUpvoted) {
       onDownvote();
     } else {
@@ -42,6 +43,7 @@ const UpvoteButton = ({ upvotes, onUpvote, onDownvote, hasUpvoted }) => {
       backgroundColor: '#f0fdf4',
       color: '#10b981',
       boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+      fontWeight: '700',
     },
     arrow: {
       fontSize: '16px',
@@ -58,6 +60,14 @@ const UpvoteButton = ({ upvotes, onUpvote, onDownvote, hasUpvoted }) => {
       fontWeight: '700',
     },
   };
+
+  if (isLoading) {
+    return (
+      <div style={{...styles.button, justifyContent: 'center', alignItems: 'center'}}>
+        <LoadingAnimation size="small" />
+      </div>
+    );
+  }
 
   return (
     <div
