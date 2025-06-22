@@ -261,7 +261,7 @@ exports.addReplyToComment = async (req, res) => {
   }
 };
 
-// DELETE a feedback item (owner only)
+// DELETE a feedback item (owner or admin)
 exports.deleteFeedback = async (req, res) => {
   try {
     const feedback = await Feedback.findById(req.params.id);
@@ -270,8 +270,8 @@ exports.deleteFeedback = async (req, res) => {
       return res.status(404).json({ message: "Feedback not found" });
     }
 
-    // Ensure the user deleting the feedback is the one who created it
-    if (feedback.createdBy.toString() !== req.user.id) {
+    // Allow deletion if user is an admin OR is the creator of the feedback
+    if (req.user.role !== 'admin' && feedback.createdBy.toString() !== req.user.id) {
       return res.status(403).json({ message: "User not authorized to delete this feedback" });
     }
 
