@@ -53,6 +53,8 @@ export const addReplyToFeedback = (id, reply) => API.post(`/feedback/${id}/reply
 export const addComment = (id, commentData) => API.post(`/feedback/${id}/comments`, commentData);
 export const addReplyToComment = (feedbackId, commentId, replyData) => API.post(`/feedback/${feedbackId}/comments/${commentId}/reply`, replyData);
 export const deleteFeedback = (id) => API.delete(`/feedback/${id}`);
+export const deleteComment = (feedbackId, commentId) => API.delete(`/feedback/${feedbackId}/comments/${commentId}`);
+export const deleteReply = (feedbackId, commentId, replyId) => API.delete(`/feedback/${feedbackId}/comments/${commentId}/replies/${replyId}`);
 
 // Auth
 export const login = (formData) => API.post('/auth/login', formData);

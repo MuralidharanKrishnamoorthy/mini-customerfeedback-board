@@ -9,7 +9,7 @@ exports.getFeedbacks = async (req, res) => {
     if (status) filter.status = status;
     if (category) filter.category = category;
     if (search) {
-      filter.title = { $regex: search, $options: 'i' }; // case-insensitive search
+      filter.title = { $regex: search, $options: 'i' }; 
     }
     if (createdBy) filter.createdBy = createdBy;
 
@@ -281,5 +281,62 @@ exports.deleteFeedback = async (req, res) => {
   } catch (error) {
     console.error("Error deleting feedback:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// DELETE a comment (owner or admin)
+exports.deleteComment = async (req, res) => {
+  try {
+    const { feedbackId, commentId } = req.params;
+    const feedback = await Feedback.findById(feedbackId);
+
+    if (!feedback) {
+      return res.status(404).json({ message: "Feedback not found" });
+    }
+
+    const comment = feedback.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Allow deletion if user is an admin OR is the creator of the comment
+    if (req.user.role !== 'admin' && comment.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: "User not authorized to delete this comment" });
+    }
+
+    comment.deleteOne(); // Mongoose v6+ subdocument deletion
+    await feedback.save();
+    res.json({ message: "Comment deleted successfully" });
+
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// DELETE a reply to a comment (owner or admin)
+exports.deleteReply = async (req, res) => {
+  try {
+    const { feedbackId, commentId, replyId } = req.params;
+    const feedback = await Feedback.findById(feedbackId);
+
+    if (!feedback) return res.status(404).json({ message: 'Feedback not found' });
+    const comment = feedback.comments.id(commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+    const reply = comment.replies.id(replyId);
+    if (!reply) return res.status(404).json({ message: 'Reply not found' });
+
+    // Allow deletion if user is an admin OR is the creator of the reply
+    if (req.user.role !== 'admin' && reply.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "User not authorized to delete this reply" });
+    }
+
+    reply.deleteOne();
+    await feedback.save();
+    res.json({ message: 'Reply deleted successfully' });
+
+  } catch (error) {
+    console.error("Error deleting reply:", error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

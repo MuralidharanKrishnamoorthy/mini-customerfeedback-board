@@ -8,6 +8,8 @@ import {
   updateFeedbackStatus,
   addComment,
   addReplyToComment,
+  deleteComment,
+  deleteReply,
 } from '../services/feedbackApi';
 import UpvoteButton from '../components/UpvoteButton';
 import CommentInput from '../components/CommentInput';
@@ -104,6 +106,19 @@ const Detail = () => {
     replyInputSection: {
         marginTop: '12px',
     },
+    commentHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    deleteButton: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: '16px',
+      color: '#9ca3af',
+      padding: '4px',
+    }
   };
 
   const statusColors = {
@@ -263,6 +278,43 @@ const Detail = () => {
     }
   };
 
+  const handleDeleteComment = async (commentId) => {
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      try {
+        await deleteComment(id, commentId);
+        // Optimistic update
+        setFeedback(prev => ({
+          ...prev,
+          comments: prev.comments.filter(c => c._id !== commentId)
+        }));
+      } catch (error) {
+        console.error('Failed to delete comment:', error);
+        alert('Could not delete comment. Please try again.');
+      }
+    }
+  };
+
+  const handleDeleteReply = async (commentId, replyId) => {
+    if (window.confirm('Are you sure you want to delete this reply?')) {
+      try {
+        await deleteReply(id, commentId, replyId);
+        // Optimistic update
+        setFeedback(prev => ({
+          ...prev,
+          comments: prev.comments.map(c => {
+            if (c._id === commentId) {
+              return { ...c, replies: c.replies.filter(r => r._id !== replyId) };
+            }
+            return c;
+          })
+        }));
+      } catch (error) {
+        console.error('Failed to delete reply:', error);
+        alert('Could not delete reply. Please try again.');
+      }
+    }
+  };
+
   useEffect(() => {
     fetchFeedback();
   }, [fetchFeedback]);
@@ -320,27 +372,48 @@ const Detail = () => {
       <div style={styles.card}>
         <h2 style={styles.commentsTitle}>Comments ({feedback.comments.length})</h2>
         {feedback.comments.length > 0 ? (
-          feedback.comments.map(comment => (
+          feedback.comments.map((comment) => (
             <div key={comment._id} style={styles.comment}>
-              <p style={styles.commentAuthor}>{comment.user?.username || comment.author || 'Anonymous'}</p>
+              <div style={styles.commentHeader}>
+                <div style={styles.commentAuthor}>{comment.user ? comment.user.username : 'Anonymous'}</div>
+                {(user?.role === 'admin' || user?.userId === comment.user?._id) && (
+                  <button onClick={() => handleDeleteComment(comment._id)} style={styles.deleteButton} title="Delete comment">
+                    🗑️
+                  </button>
+                )}
+              </div>
               <p style={styles.commentText}>{comment.text}</p>
               
-              <div style={styles.repliesContainer}>
-                {comment.replies?.map(reply => (
-                    <div key={reply._id} style={styles.reply}>
-                        <p style={styles.commentAuthor}>{reply.createdBy?.username || 'Anonymous'}</p>
-                        <p style={{...styles.commentText, color: '#6b7280'}}>{reply.text}</p>
-                    </div>
-                ))}
-              </div>
-
               <button onClick={() => setReplyingTo(replyingTo === comment._id ? null : comment._id)} style={styles.replyButton}>
                 {replyingTo === comment._id ? 'Cancel' : 'Reply'}
               </button>
 
               {replyingTo === comment._id && (
                 <div style={styles.replyInputSection}>
-                  <CommentInput onSubmit={(replyText) => handleReplySubmit(comment._id, replyText)} loading={submittingReply === comment._id} />
+                  <CommentInput
+                    onSubmit={(replyText) => handleReplySubmit(comment._id, replyText)}
+                    loading={submittingReply === comment._id}
+                    placeholder="Write a reply..."
+                    buttonText="Post Reply"
+                  />
+                </div>
+              )}
+
+              {comment.replies && comment.replies.length > 0 && (
+                <div style={styles.repliesContainer}>
+                  {comment.replies.map((reply) => (
+                    <div key={reply._id} style={styles.reply}>
+                       <div style={styles.commentHeader}>
+                        <div style={styles.commentAuthor}>{reply.createdBy ? reply.createdBy.username : 'Anonymous'}</div>
+                        {(user?.role === 'admin' || user?.userId === reply.createdBy?._id) && (
+                           <button onClick={() => handleDeleteReply(comment._id, reply._id)} style={styles.deleteButton} title="Delete reply">
+                            🗑️
+                          </button>
+                        )}
+                      </div>
+                      <p style={styles.commentText}>{reply.text}</p>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
