@@ -265,17 +265,19 @@ exports.removeUpvote = async (req, res) => {
       }
 
       const userId = req.user.id;
-      const upvoteIndex = feedback.upvotedBy.indexOf(userId);
+      
+      // Check if the user has actually upvoted
+      const hasUpvoted = feedback.upvotedBy.some(id => id.equals(userId));
 
-      if (upvoteIndex === -1) {
+      if (!hasUpvoted) {
           return res.status(400).json({
               message: "You have not upvoted this feedback.",
               hasUpvoted: false
           });
       }
 
-      // Remove user from upvotedBy array and decrement upvotes
-      feedback.upvotedBy.splice(upvoteIndex, 1);
+      // Filter out the user's ID to remove the upvote
+      feedback.upvotedBy = feedback.upvotedBy.filter(id => !id.equals(userId));
       feedback.upvotes -= 1;
       await feedback.save();
 
