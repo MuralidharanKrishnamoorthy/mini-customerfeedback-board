@@ -91,11 +91,18 @@ const Navbar = () => {
         {user ? (
           <div style={styles.userInfo}>
             {user.role !== 'admin' && (
-              <Link to="/my-feedback" style={{...styles.navLink}}
-                  onMouseEnter={(e) => e.target.style.color = styles.navLinkHover.color}
-                  onMouseLeave={(e) => e.target.style.color = styles.navLink.color}>
-                  My Feedback
-              </Link>
+              <>
+                <Link to="/my-feedback" style={{...styles.navLink}}
+                    onMouseEnter={(e) => e.target.style.color = styles.navLinkHover.color}
+                    onMouseLeave={(e) => e.target.style.color = styles.navLink.color}>
+                    My Feedback
+                </Link>
+                <Link to="/my-upvoted" style={{...styles.navLink}}
+                    onMouseEnter={(e) => e.target.style.color = styles.navLinkHover.color}
+                    onMouseLeave={(e) => e.target.style.color = styles.navLink.color}>
+                    My Upvoted
+                </Link>
+              </>
             )}
             {user.role === 'admin' && (
               <Link to="/admin" style={{...styles.navLink, fontWeight: 'bold' }}

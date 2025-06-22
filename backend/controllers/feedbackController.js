@@ -239,3 +239,54 @@ exports.deleteFeedback = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// GET user's upvoted feedbacks
+exports.getMyUpvotedFeedbacks = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const feedbacks = await Feedback.find({ upvotedBy: userId })
+      .populate('createdBy', 'username')
+      .populate('comments.user', 'username')
+      .populate('comments.replies.createdBy', 'username')
+      .sort({ createdAt: -1 });
+    res.json(feedbacks);
+  } catch (error) {
+    console.error("Error fetching user's upvoted feedbacks:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// POST remove upvote
+exports.removeUpvote = async (req, res) => {
+  try {
+      const feedback = await Feedback.findById(req.params.id);
+      if (!feedback) {
+          return res.status(404).json({ message: "Feedback not found" });
+      }
+
+      const userId = req.user.id;
+      const upvoteIndex = feedback.upvotedBy.indexOf(userId);
+
+      if (upvoteIndex === -1) {
+          return res.status(400).json({
+              message: "You have not upvoted this feedback.",
+              hasUpvoted: false
+          });
+      }
+
+      // Remove user from upvotedBy array and decrement upvotes
+      feedback.upvotedBy.splice(upvoteIndex, 1);
+      feedback.upvotes -= 1;
+      await feedback.save();
+
+      const populatedFeedback = await Feedback.findById(req.params.id)
+          .populate('createdBy', 'username')
+          .populate('comments.user', 'username')
+          .populate('comments.replies.createdBy', 'username');
+
+      res.json(populatedFeedback);
+  } catch (error) {
+      console.error("Error removing upvote:", error);
+      res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -9,6 +9,7 @@ import Admin from './pages/Admin';
 import Navbar from './components/Navbar';
 import Register from './pages/Register';
 import UserFeedback from './pages/UserFeedback';
+import MyUpvoted from './pages/MyUpvoted';
 
 const Layout = () => {
   return (
@@ -31,6 +32,7 @@ const App = () => {
           <Route path="/feedback/:id" element={<Detail />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/my-feedback" element={<UserFeedback />} />
+          <Route path="/my-upvoted" element={<MyUpvoted />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

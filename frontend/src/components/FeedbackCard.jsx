@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import UpvoteButton from './UpvoteButton';
 import CommentInput from './CommentInput';
 import { addComment } from '../services/feedbackApi';
+import { removeUpvote } from '../services/feedbackApi';
 
 const statusColors = {
   Open: { backgroundColor: '#e0e7ff', color: '#4f46e5' },
@@ -31,14 +32,26 @@ const categoryIcons = {
   UI: "🎨",
 };
 
-const FeedbackCard = ({ feedback, onUpvote, onViewDetail, user }) => {
-  const { _id, title, description, category, status, upvotes, comments, upvotedBy } = feedback;
+const FeedbackCard = ({ feedback, onViewDetail, user, onUpvote, onRemoveUpvote, showComments = true }) => {
+  if (!feedback) {
+    return null; // Or some fallback UI
+  }
+
+  const { _id, title, description, category, status, comments } = feedback;
   const [currentComments, setCurrentComments] = useState(comments || []);
   const [submittingComment, setSubmittingComment] = useState(false);
-  
-  // Check if user has upvoted using the user ID from JWT token
-  const hasUpvoted = user && upvotedBy && upvotedBy.includes(user.userId || user.id);
 
+  // Check if user has upvoted using the user ID from JWT token
+  const isUpvoted = user && feedback.upvotedBy && feedback.upvotedBy.includes(user.userId || user.id);
+
+  const handleUpvoteClick = () => {
+    if (onUpvote) onUpvote(_id);
+  };
+  
+  const handleRemoveUpvoteClick = () => {
+    if (onRemoveUpvote) onRemoveUpvote(_id);
+  };
+  
   const handleCommentSubmit = async (commentText) => {
     if (!user) {
       alert("Please log in to comment.");
@@ -137,18 +150,25 @@ const FeedbackCard = ({ feedback, onUpvote, onViewDetail, user }) => {
         <div style={styles.header}>
           <div style={{...styles.tag, ...statusColors[status]}}>{status}</div>
           <div style={{...styles.tag, ...categoryColors[category]}}>{category}</div>
-          <UpvoteButton upvotes={upvotes} onUpvote={onUpvote} hasUpvoted={hasUpvoted} />
         </div>
         <h3 style={styles.title}>{title}</h3>
         <p style={styles.description}>{description}</p>
         <div style={styles.footer}>
+          <UpvoteButton 
+            feedback={feedback} 
+            user={user} 
+            onUpvote={handleUpvoteClick} 
+            onRemoveUpvote={handleRemoveUpvoteClick}
+            isUpvoted={isUpvoted} 
+          />
           <div style={styles.commentsInfo}>💬 {currentComments.length} Comments</div>
-          {hasUpvoted && <div style={styles.supportMessage}>✓ You have supported this</div>}
         </div>
       </div>
-      <div style={styles.commentSection}>
-        <CommentInput onSubmit={handleCommentSubmit} loading={submittingComment} />
-      </div>
+      {showComments && (
+        <div style={styles.commentSection}>
+          <CommentInput onSubmit={handleCommentSubmit} loading={submittingComment} />
+        </div>
+      )}
     </div>
   );
 };
