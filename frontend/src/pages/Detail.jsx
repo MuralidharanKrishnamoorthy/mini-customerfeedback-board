@@ -3,15 +3,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   getFeedbackById,
-  upvoteFeedback,
-  downvoteFeedback,
   updateFeedbackStatus,
   addComment,
   addReplyToComment,
   deleteComment,
   deleteReply,
 } from '../services/feedbackApi';
-import UpvoteButton from '../components/UpvoteButton';
 import CommentInput from '../components/CommentInput';
 import LoadingAnimation from '../components/LoadingAnimation';
 
@@ -162,53 +159,6 @@ const Detail = () => {
     }
   }, [id, navigate]);
 
-  const handleUpvote = async () => {
-    if (!user) return alert('You must be logged in to vote.');
-    
-    // Optimistic update
-    setFeedback(prev => ({
-      ...prev,
-      upvotes: prev.upvotes + 1,
-      upvotedBy: [...prev.upvotedBy, user.userId || user.id]
-    }));
-
-    try {
-      const res = await upvoteFeedback(id);
-      setFeedback(res.data); // Sync with server state
-    } catch (error) {
-      console.error("Failed to upvote:", error);
-      fetchFeedback(); // Re-fetch to correct state on error
-    }
-  };
-
-  const handleDownvote = async () => {
-    if (!user) return alert('You must be logged in to vote.');
-
-    // Optimistic update
-    setFeedback(prev => ({
-      ...prev,
-      upvotes: prev.upvotes - 1,
-      upvotedBy: prev.upvotedBy.filter(uid => uid !== (user.userId || user.id))
-    }));
-
-    try {
-      const res = await downvoteFeedback(id);
-      setFeedback(res.data); // Sync with server state
-    } catch (error) {
-      console.error("Failed to downvote:", error);
-      fetchFeedback(); // Re-fetch to correct state on error
-    }
-  };
-
-  const handleStatusChange = async (e) => {
-    try {
-      await updateFeedbackStatus(id, e.target.value);
-      fetchFeedback();
-    } catch (error) {
-      console.error('Error updating status:', error);
-    }
-  };
-
   const handleCommentSubmit = async (commentText) => {
     console.log('handleCommentSubmit - User state:', user);
     console.log('handleCommentSubmit - localStorage user:', localStorage.getItem('user'));
@@ -343,12 +293,10 @@ const Detail = () => {
         <div style={styles.metaGrid}>
           <div style={styles.metaItem}>
             <div style={styles.metaLabel}>Upvotes</div>
-            <UpvoteButton
-              upvotes={feedback.upvotes}
-              onUpvote={handleUpvote}
-              onDownvote={handleDownvote}
-              hasUpvoted={hasUpvoted}
-            />
+            <div style={{ ...styles.metaValue, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '18px', color: '#6b7280' }}>↑</span>
+              {feedback.upvotes}
+            </div>
           </div>
           <div style={styles.metaItem}>
             <div style={styles.metaLabel}>Author</div>
