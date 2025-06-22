@@ -7,7 +7,8 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://mini-customerfeedback-board-quiv.vercel.app"
+  "https://mini-customerfeedback-board-quiv.vercel.app",
+  "https://mini-customerfeedback-board-quiv-6pbv0dclg.vercel.app"
 ];
 
 app.use(cors({

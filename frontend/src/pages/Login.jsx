@@ -90,32 +90,25 @@ const Login = () => {
     
     setLoading(true);
     try {
-      console.log('Login - Attempting login with:', form);
-      
-      // Add a minimum loading time to make animation visible
       const startTime = Date.now();
-      const minLoadingTime = 2000; // 2 seconds minimum
-      
       const res = await login(form);
-      
-      // Ensure minimum loading time
       const elapsedTime = Date.now() - startTime;
+      const minLoadingTime = 1500; // 1.5 seconds
+
       if (elapsedTime < minLoadingTime) {
         await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
       }
       
-      console.log('Login - Response received:', res);
-      const userData = res.data;
-      console.log('Login - User data to store:', userData);
-      console.log('Login - Token in userData:', userData.token);
-      
-      localStorage.setItem("user", JSON.stringify(userData));
-      console.log('Login - User stored in localStorage:', localStorage.getItem('user'));
-      
-      navigate(userData.role === "admin" ? "/admin" : "/");
+      localStorage.setItem("user", JSON.stringify(res.data));
+      navigate(res.data.role === "admin" ? "/admin" : "/");
+
     } catch (error) {
-      console.error('Login - Error:', error);
-      alert("Login failed. Check credentials.");
+      console.error('Login Error:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(`Login failed: ${error.response.data.message}`);
+      } else {
+        alert("Login failed. Please check your credentials and try again.");
+      }
     } finally {
       setLoading(false);
     }
