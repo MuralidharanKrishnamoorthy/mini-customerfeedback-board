@@ -1,3 +1,5 @@
+**Hosted Link:** [https://mini-customerfeedback-board-quiv-2aqhjmz3j.vercel.app](https://mini-customerfeedback-board-quiv-2aqhjmz3j.vercel.app)
+
 # Insightify - Customer Feedback Board
 
 A full-stack web application for managing customer feedback with user authentication, real-time interactions, and admin dashboard functionality.
