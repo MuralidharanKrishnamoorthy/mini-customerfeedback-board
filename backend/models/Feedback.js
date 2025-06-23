@@ -25,7 +25,7 @@ const FeedbackSchema = new mongoose.Schema({
   description: { type: String, required: true },
   category: {
     type: String,
-    enum: ["Feature", "Bug", "UI"],
+    enum: ["Feature", "Bug", "UI", "Other"],
     required: true,
   },
   status: {

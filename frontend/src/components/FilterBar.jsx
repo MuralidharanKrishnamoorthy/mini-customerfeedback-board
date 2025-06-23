@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const FilterBar = ({ onFilterChange, currentFilter }) => {
@@ -50,6 +49,7 @@ const FilterBar = ({ onFilterChange, currentFilter }) => {
           <option value="category:Feature">Feature</option>
           <option value="category:Bug">Bug</option>
           <option value="category:UI">UI Improvement</option>
+          <option value="category:Other">Other</option>
         </optgroup>
       </select>
     </div>

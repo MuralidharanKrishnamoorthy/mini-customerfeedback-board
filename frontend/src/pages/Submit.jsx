@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createFeedback } from '../services/feedbackApi';
@@ -271,6 +270,7 @@ const Submit = () => {
               <option value="Feature">Feature Request</option>
               <option value="Bug">Bug Report</option>
               <option value="UI">UI/UX Improvement</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div style={styles.formGroup}>

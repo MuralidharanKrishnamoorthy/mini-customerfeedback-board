@@ -140,9 +140,10 @@ const Detail = () => {
   };
 
   const categoryColors = {
-    Bug: styles.statusTag,
-    Feature: styles.statusTag,
-    UI: styles.statusTag,
+    Bug: { backgroundColor: '#fee2e2', color: '#b91c1c' },
+    Feature: { backgroundColor: '#dbeafe', color: '#1d4ed8' },
+    UI: { backgroundColor: '#ede9fe', color: '#5b21b6' },
+    Other: { backgroundColor: '#fef3c7', color: '#b45309' },
   };
 
   const statusIcons = {
@@ -156,6 +157,7 @@ const Detail = () => {
     Bug: "🐛",
     Feature: "✨",
     UI: "🎨",
+    Other: '🤔',
   };
 
   const fetchFeedback = useCallback(async () => {
@@ -301,7 +303,6 @@ const Detail = () => {
   if (!feedback) return <div style={styles.loadingError}>Feedback not found.</div>;
 
   const statusClass = statusColors[feedback.status] || styles.statusTag;
-  const categoryClass = categoryColors[feedback.category] || styles.statusTag;
 
   const hasUpvoted = user && feedback.upvotedBy.includes(user.userId || user.id);
 
@@ -326,7 +327,7 @@ const Detail = () => {
           </div>
           <div style={styles.metaItem}>
             <div style={styles.metaLabel}>Category</div>
-            <div style={styles.metaValue}>{feedback.category}</div>
+            <div style={{ ...styles.statusTag, ...categoryColors[feedback.category] }}>{feedback.category}</div>
           </div>
           <div style={styles.metaItem}>
             <div style={styles.metaLabel}>Status</div>
