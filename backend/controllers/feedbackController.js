@@ -80,6 +80,33 @@ exports.createFeedback = async (req, res) => {
   }
 };
 
+// PATCH update feedback (owner-only)
+exports.updateFeedback = async (req, res) => {
+  try {
+    const { title, description, category } = req.body;
+    const feedback = await Feedback.findById(req.params.id);
+
+    if (!feedback) {
+      return res.status(404).json({ message: "Feedback not found" });
+    }
+
+    // Ensure the user updating the feedback is the one who created it
+    if (feedback.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "User not authorized to update this feedback" });
+    }
+
+    feedback.title = title || feedback.title;
+    feedback.description = description || feedback.description;
+    feedback.category = category || feedback.category;
+
+    const updatedFeedback = await feedback.save();
+    res.json(updatedFeedback);
+  } catch (error) {
+    console.error("Error updating feedback:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // PATCH upvote
 exports.upvoteFeedback = async (req, res) => {
   try {

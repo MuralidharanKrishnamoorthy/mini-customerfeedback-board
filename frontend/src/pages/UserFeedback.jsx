@@ -54,6 +54,10 @@ const UserFeedback = () => {
     setDeletingId(null);
   };
 
+  const handleEdit = (feedbackId) => {
+    navigate(`/edit-feedback/${feedbackId}`);
+  };
+
   const styles = {
     container: {
       maxWidth: '1200px',
@@ -116,6 +120,8 @@ const UserFeedback = () => {
               isDeleting={deletingId === feedback._id}
               onConfirmDelete={() => handleDelete(feedback._id)}
               onCancelDelete={cancelDelete}
+              showEdit={true}
+              onEdit={() => handleEdit(feedback._id)}
             />
           ))}
         </div>

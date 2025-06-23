@@ -6,6 +6,7 @@ const auth = require("../middlewares/auth");
 router.get("/", feedbackController.getFeedbacks);
 router.post("/", auth, feedbackController.createFeedback);
 router.get("/:id", feedbackController.getFeedbackById);
+router.patch("/:id", auth, feedbackController.updateFeedback);
 router.delete("/:id", auth, feedbackController.deleteFeedback);
 
 router.post('/:id/upvote', auth, feedbackController.upvoteFeedback);

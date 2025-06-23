@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Home from './pages/Home';
@@ -9,6 +8,7 @@ import Admin from './pages/Admin';
 import Navbar from './components/Navbar';
 import Register from './pages/Register';
 import UserFeedback from './pages/UserFeedback';
+import EditFeedback from './pages/EditFeedback';
 
 const Layout = () => {
   return (
@@ -31,6 +31,7 @@ const App = () => {
           <Route path="/feedback/:id" element={<Detail />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/my-feedback" element={<UserFeedback />} />
+          <Route path="/edit-feedback/:id" element={<EditFeedback />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

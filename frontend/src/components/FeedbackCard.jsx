@@ -42,7 +42,9 @@ const FeedbackCard = ({
   isDownvoting,
   isDeleting,
   onConfirmDelete,
-  onCancelDelete
+  onCancelDelete,
+  showEdit,
+  onEdit
 }) => {
   const { _id, title, description, category, status, upvotes, comments, upvotedBy } = feedback;
   const [currentComments, setCurrentComments] = useState(comments || []);
@@ -141,15 +143,30 @@ const FeedbackCard = ({
         borderTop: '1px solid #f3f4f6',
         paddingTop: '16px',
     },
-    deleteButton: {
+    buttonContainer: {
+      display: 'flex',
+      gap: '10px',
+      alignItems: 'center',
+      marginLeft: 'auto',
+    },
+    actionButton: {
       padding: '8px 16px',
       borderRadius: '8px',
-      border: '1px solid #fee2e2',
-      backgroundColor: '#fef2f2',
-      color: '#ef4444',
+      border: '1px solid transparent',
       fontWeight: '600',
       cursor: 'pointer',
-      transition: 'background-color 0.2s',
+      transition: 'background-color 0.2s, border-color 0.2s',
+      fontSize: '14px',
+    },
+    deleteButton: {
+      borderColor: '#fee2e2',
+      backgroundColor: '#fef2f2',
+      color: '#ef4444',
+    },
+    editButton: {
+      borderColor: '#e0e7ff',
+      backgroundColor: '#f0f2ff',
+      color: '#4f46e5',
     },
     deleteConfirmContainer: {
       display: 'flex',
@@ -171,33 +188,46 @@ const FeedbackCard = ({
         <div style={styles.header}>
           <div style={{...styles.tag, ...statusColors[status]}}>{status}</div>
           <div style={{...styles.tag, ...categoryColors[category]}}>{category}</div>
-          {showDelete ? (
-             isDeleting ? (
-              <div style={styles.deleteConfirmContainer}>
-                <span style={{fontSize: '14px', fontWeight: 500, color: '#4b5563'}}>Delete?</span>
-                <button onClick={(e) => { e.stopPropagation(); onConfirmDelete(); }} style={{...styles.confirmButton, backgroundColor: '#fee2e2', color: '#dc2626'}}>Yes</button>
-                <button onClick={(e) => { e.stopPropagation(); onCancelDelete(); }} style={{...styles.confirmButton, backgroundColor: '#f3f4f6', color: '#4b5563'}}>No</button>
-              </div>
-            ) : (
+          <div style={styles.buttonContainer}>
+          {showEdit && !isDeleting && (
               <button 
                 onClick={(e) => {
                   e.stopPropagation(); 
-                  onDelete();
+                  onEdit();
                 }} 
-                style={styles.deleteButton}
+                style={{...styles.actionButton, ...styles.editButton}}
               >
-                Delete
+                Edit
               </button>
-            )
-          ) : (
-            <UpvoteButton
-              upvotes={upvotes}
-              onUpvote={onUpvote}
-              onDownvote={onDownvote}
-              hasUpvoted={user && upvotedBy && upvotedBy.includes(user.userId || user.id)}
-              isLoading={isUpvoting || isDownvoting}
-            />
-          )}
+            )}
+            {showDelete ? (
+              isDeleting ? (
+                <div style={styles.deleteConfirmContainer}>
+                  <span style={{fontSize: '14px', fontWeight: 500, color: '#4b5563'}}>Delete?</span>
+                  <button onClick={(e) => { e.stopPropagation(); onConfirmDelete(); }} style={{...styles.confirmButton, backgroundColor: '#fee2e2', color: '#dc2626'}}>Yes</button>
+                  <button onClick={(e) => { e.stopPropagation(); onCancelDelete(); }} style={{...styles.confirmButton, backgroundColor: '#f3f4f6', color: '#4b5563'}}>No</button>
+                </div>
+              ) : (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation(); 
+                    onDelete();
+                  }} 
+                  style={{...styles.actionButton, ...styles.deleteButton}}
+                >
+                  Delete
+                </button>
+              )
+            ) : (
+              <UpvoteButton
+                upvotes={upvotes}
+                onUpvote={onUpvote}
+                onDownvote={onDownvote}
+                hasUpvoted={user && upvotedBy && upvotedBy.includes(user.userId || user.id)}
+                isLoading={isUpvoting || isDownvoting}
+              />
+            )}
+          </div>
         </div>
         <h3 style={styles.title}>{title}</h3>
         <p style={styles.description}>{description}</p>
