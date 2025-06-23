@@ -146,20 +146,7 @@ const Detail = () => {
     Other: { backgroundColor: '#fef3c7', color: '#b45309' },
   };
 
-  const statusIcons = {
-    Open: "🔵",
-    Planned: "📋",
-    'In Progress': "⚡",
-    Done: "✅",
-  };
-
-  const categoryIcons = {
-    Bug: "🐛",
-    Feature: "✨",
-    UI: "🎨",
-    Other: '🤔',
-  };
-
+  
   const fetchFeedback = useCallback(async () => {
     try {
       setLoading(true);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+
 import UpvoteButton from './UpvoteButton';
 import CommentInput from './CommentInput';
 import { addComment } from '../services/feedbackApi';
@@ -17,18 +17,7 @@ const categoryColors = {
   UI: { backgroundColor: '#fef3c7', color: '#f59e0b' },
 };
 
-const statusIcons = {
-  Open: "🔵",
-  Planned: "📋",
-  'In Progress': "⚡",
-  Done: "✅",
-};
 
-const categoryIcons = {
-  Bug: "🐛",
-  Feature: "✨",
-  UI: "🎨",
-};
 
 const FeedbackCard = ({ 
   feedback, 
