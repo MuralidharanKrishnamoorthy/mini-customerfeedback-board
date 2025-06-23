@@ -58,12 +58,6 @@ exports.createFeedback = async (req, res) => {
       });
     }
 
-    if (!["Feature", "Bug", "UI"].includes(category)) {
-      return res.status(400).json({
-        message: "Category must be Feature, Bug, or UI",
-      });
-    }
-
     const newFeedback = new Feedback({
       title,
       description,
